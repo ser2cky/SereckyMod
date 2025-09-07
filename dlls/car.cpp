@@ -663,9 +663,9 @@ void CDriveableCar::Move(float flInterval)
 		pev->ideal_yaw = pev->angles.y;
 
 		if (m_pevDriver->button & IN_FORWARD)
-			m_flSpeed = Interpolate(m_flSpeed, 1.5f, m_flAccel * gpGlobals->frametime);
+			m_flSpeed = Interpolate(m_flSpeed, 4.5f, m_flAccel * gpGlobals->frametime);
 		else if (m_pevDriver->button & IN_BACK)
-			m_flSpeed = Interpolate(m_flSpeed, -1.5f, m_flAccel * gpGlobals->frametime);
+			m_flSpeed = Interpolate(m_flSpeed, -4.5f, m_flAccel * gpGlobals->frametime);
 		else
 			m_flSpeed = Interpolate(m_flSpeed, 0.0f, gpGlobals->frametime);
 
@@ -695,7 +695,7 @@ void CDriveableCar::Move(float flInterval)
 //	if (pev->flags & FL_ONGROUND && pev->waterlevel != 3)
 //		pev->velocity = gpGlobals->v_forward * m_flSpeed * 750;
 
-	Car_WalkMove(pev->ideal_yaw, m_flSpeed * 1.5f);
+	Car_WalkMove(pev->ideal_yaw, m_flSpeed);
 
 	if (m_iDir) ideal_angles.y -= m_flSlide;
 	else ideal_angles.y += m_flSlide;

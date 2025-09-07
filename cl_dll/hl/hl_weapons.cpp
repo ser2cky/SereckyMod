@@ -35,7 +35,9 @@ extern globalvars_t *gpGlobals;
 extern int g_iUser1;
 
 // Pool of client side entities/entvars_t
+//Weapons + player entity
 static edict_t entities[ MAX_WEAPONS + 1 ];
+
 static int			num_ents = 0;
 
 // The entity we'll use to represent the local client
@@ -139,8 +141,7 @@ void HUD_PrepWeapon( CWeaponRegistry* pReg, CBasePlayer* pWeaponOwner )
 =====================
 HUD_PrepEntity
 
-Links the raw entity to an entvars_s holder.  If a player is passed in as the owner, then
-we set up the m_pPlayer field.
+Links the raw entity to an entvars_s holder.
 =====================
 */
 void HUD_PrepEntity( CBaseEntity *pEntity )
@@ -354,7 +355,7 @@ void CBasePlayerWeapon::ItemPostFrame( void )
 	{
 #if 0 // FIXME, need ammo on client to make this work right
 		// complete the reload. 
-		int j = min( iMaxClip() - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);	
+		int j = V_min( iMaxClip() - m_iClip, m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType]);	
 
 		// Add them to the clip
 		m_iClip += j;
@@ -591,22 +592,6 @@ void UTIL_ParticleLine( CBasePlayer *player, float *start, float *end, float lif
 
 /*
 =====================
-CBasePlayerWeapon::PrintState
-
-For debugging, print out state variables to log file
-=====================
-*/
-void CBasePlayerWeapon::PrintState( void )
-{
-	COM_Log( "c:\\hl.log", "%.4f ", gpGlobals->time );
-	COM_Log( "c:\\hl.log", "%.4f ", m_pPlayer->m_flNextAttack );
-	COM_Log( "c:\\hl.log", "%.4f ", m_flNextPrimaryAttack );
-	COM_Log( "c:\\hl.log", "%.4f ", m_flTimeWeaponIdle - gpGlobals->time);
-	COM_Log( "c:\\hl.log", "%i ", m_iClip );
-}
-
-/*
-=====================
 HUD_InitClientWeapons
 
 Set up weapons, player and functions needed to run weapons code client-side.
@@ -643,9 +628,6 @@ void HUD_InitClientWeapons( void )
 	g_engfuncs.pfnPrecacheEvent		= gEngfuncs.pfnPrecacheEvent;
 	g_engfuncs.pfnRandomFloat		= gEngfuncs.pfnRandomFloat;
 	g_engfuncs.pfnRandomLong		= gEngfuncs.pfnRandomLong;
-
-	// Allocate a slot for the local player
-	HUD_PrepEntity( &player );
 
 	// Allocate a slot for the local player
 	HUD_PrepEntity( &player );
@@ -714,7 +696,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	HUD_InitClientWeapons();	
 
 	// Get current clock
-	gpGlobals->time = time;
+	gpGlobals->time = gEngfuncs.GetClientTime();
 
 	// Fill in data based on selected weapon
 	// FIXME, make this a method in each weapon?  where you pass in an entity_state_t *?
@@ -833,7 +815,7 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		 ( ( CRpg * )player.m_pActiveItem)->m_cActiveRockets = (int)from->client.vuser2[ 2 ];
 	}
 	
-	// Don't go firing anything if we have died.
+	// Don't go firing anything if we have died or are spectating
 	// Or if we don't have a weapon model deployed
 	if ( ( player.pev->deadflag != ( DEAD_DISCARDBODY + 1 ) ) && 
 		 !CL_IsDead() && player.pev->viewmodel && !g_iUser1 )

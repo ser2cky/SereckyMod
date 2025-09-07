@@ -119,14 +119,16 @@ float	v_idlescale;  // used by TFC for concussion grenade effect
 // temp working variables for player view
 float		bobfracsin = 0.0f;
 int			bobcycle = 0;
+int			bobCycle = 0;
 float		xyspeed = 0.0f;
 float		bobtime = 0.0f;
 float		bobmove = 0.0f;
 extern		kbutton_t in_duck;
+extern		kbutton_t in_speed;
 
-float landTime = 0.0f;
-float groundTime = 0.0f;
-float view_ofs = 0.0f;
+float		landTime = 0.0f;
+float		groundTime = 0.0f;
+float		view_ofs = 0.0f;
 static float landChange = -8.0f;
 
 cvar_t		*cl_gun_roll;
@@ -209,7 +211,7 @@ Quake2/3 Viewbob.
 
 void V_CalcBobNew(struct ref_params_s* pparams)
 {
-	cl_entity_t* view;//, *ent;
+	cl_entity_t* view;
 	static float offset = 0.0f;
 	float	scale, delta, fracsin;
 
@@ -238,16 +240,13 @@ void V_CalcBobNew(struct ref_params_s* pparams)
 		offset = landChange * 0.25f * (LAND_DEFLECT_TIME + LAND_RETURN_TIME - delta) / LAND_RETURN_TIME;
 
 	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("gun offset %.2f\n", offset));
-
 	if (offset > 0.0f)
 		offset = 0.0f;
 
-	offset = Interpolate(offset, 0.0f, pparams->frametime);
 	view->origin[2] += offset;
 
 	// idle drift
-	if (!pparams->onground)
-	{
+	if ( !pparams->onground ) {
 		scale = xyspeed + 40;
 		fracsin = sin(pparams->time - groundTime);
 		view->angles[ROLL] += scale * fracsin * 0.01f;
@@ -255,29 +254,29 @@ void V_CalcBobNew(struct ref_params_s* pparams)
 		view->angles[PITCH] += scale * fracsin * 0.01f;
 	}
 
-	// gun angles from delta movement (UNCOMMENT FOR Q2 GOODNESS!!!) - serecky 8.27.25
-	/*for (int i = 0; i < 3; i++)
-	{
-		delta = ent->latched.prevangles[i] - ent->curstate.angles[i];
-		if (delta > 180)
-			delta -= 360;
-		if (delta < -180)
-			delta += 360;
-		if (delta > 45)
-			delta = 45;
-		if (delta < -45)
-			delta = -45;
-		if (i == YAW)
-			view->angles[ROLL] += 0.1 * delta;
-		view->angles[i] += 0.2 * delta;
-	}
-
-	VectorCopy(ent->angles, ent->curstate.angles);
-	VectorCopy(ent->angles, ent->latched.prevangles);*/
-
 	VectorCopy(view->origin, view->curstate.origin);
 	VectorCopy(view->angles, view->curstate.angles);
 }
+
+// gun angles from delta movement (UNCOMMENT FOR Q2 GOODNESS!!!) - serecky 8.27.25
+/*for (int i = 0; i < 3; i++)
+{
+	delta = ent->latched.prevangles[i] - ent->curstate.angles[i];
+	if (delta > 180)
+		delta -= 360;
+	if (delta < -180)
+		delta += 360;
+	if (delta > 45)
+		delta = 45;
+	if (delta < -45)
+		delta = -45;
+	if (i == YAW)
+		view->angles[ROLL] += 0.1 * delta;
+	view->angles[i] += 0.2 * delta;
+}
+
+VectorCopy(ent->angles, ent->curstate.angles);
+VectorCopy(ent->angles, ent->latched.prevangles);*/
 
 /*
 ===================
@@ -348,16 +347,16 @@ V_CalcBobValues
 Calc Quake2/3 Viewbob Values
 ============================
 */
-
 void V_CalcBobValues( struct ref_params_s* pparams )
 {
 	static float nextbobtime = 0.0f, lastbobtime = 0.0f;
 	static float real_landtime = 0.0f;
+	int old;
 
 	xyspeed = sqrt(pparams->simvel[0] * pparams->simvel[0] + pparams->simvel[1] * pparams->simvel[1]);
 
-	if (!pparams->onground) 
-	{ // Putting actual landtime somewhere else so it doesn't mess up dropping.
+	if (!pparams->onground) {
+		// Putting actual landtime somewhere else so it doesn't mess up dropping.
 		real_landtime = pparams->time;
 
 		if (pparams->simvel[2] < -350.0f)
@@ -367,53 +366,36 @@ void V_CalcBobValues( struct ref_params_s* pparams )
 		else
 			landChange = -8.0f;
 	}
-	else 
-	{
-		if (real_landtime) 
-		{
+	else {
+		if (real_landtime) {
 			landTime = real_landtime;
 			real_landtime = 0.0f;
 			bobtime = 0; // start at beginning of cycle again
 			lastbobtime = bobtime;
 		}
 
-		if (xyspeed < 5)
-		{
-			bobmove = 0;
-			bobtime = 0; // start at beginning of cycle again
+		// Redid the cycle generation code to use the Quake3-Arena method
+		// instead of the Quake 2 one, which had very poor interpolation!!
+		// - serecky 9.2.25
+		if (xyspeed < 5) 
+			bobCycle = 0;
+
+		if (in_duck.state & 1) {
+			bobmove = 0.5;	// ducked characters bob much faster
 		}
-		else if (pparams->onground)
-		{ // so bobbing only cycles when on ground
-			if (xyspeed > 210)
-				bobmove = 0.25;
-			else if (xyspeed > 100)
-				bobmove = 0.125;
+		else {
+			if (!(in_speed.state & 1))
+				bobmove = 0.4f;	// faster speeds bob faster
 			else
-				bobmove = 0.0625;
+				bobmove = 0.3f;	// walking bobs slow
 		}
 
-		// Update bob times every 0.1 seconds! This mirrors the way Q2
-		// updated the bobcycle, which updated every 0.1 seconds and was
-		// interpolated in-engine!!! - serecky 8.27.25
-		if (!nextbobtime || !bobtime || nextbobtime < pparams->time)
-		{
-			lastbobtime = bobtime;
-			if (in_duck.state & 1)
-				bobtime = (bobtime += bobmove * (xyspeed > 200 ? 1 : 4));
-			else
-				bobtime = (bobtime += bobmove);
-			nextbobtime = pparams->time + 0.1f;
-		}
-
-		// lastbobtime doesn't interpolate smoothly! there's a small ammount of 
-		// precision error but i have 0 clue on how to fix it! - serecky 8.29.25
-		lastbobtime = Interpolate(lastbobtime, bobtime, pparams->frametime * 15.0f);
-		bobcycle = (int)lastbobtime;
-		bobfracsin = fabs(sin(lastbobtime * M_PI));
+		old = bobCycle;
+		bobCycle = (int)(old + bobmove * (pparams->frametime * 1000.0f)) & 255;
 		groundTime = pparams->time;
-
-		//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("bobcycle: %d, bobfracsin: %.2f, bobtime: %.2f, bobmove: %.2f,\n", bobcycle, bobfracsin, lastbobtime, bobmove));
 	}
+	bobcycle = (bobCycle & 128) >> 7;
+	bobfracsin = fabs(sin((bobCycle & 127) / 127.0 * M_PI));
 }
 
 /*
@@ -866,11 +848,12 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	static float lerpPunch[3] = { 0, 0, 0 };
 	static float ev_lerpPunch[3] = { 0, 0, 0 };
 
+	/*
 	for (i = 0; i < 3; i++)
 	{
 		lerpPunch[i] = Interpolate(lerpPunch[i], pparams->punchangle[i], pparams->frametime * 10.0f);
 		ev_lerpPunch[i] = Interpolate(ev_lerpPunch[i], ev_punchangle[i], pparams->frametime * 10.0f);
-	}
+	}*/
 
 	VectorAdd ( pparams->viewangles, lerpPunch, pparams->viewangles );
 

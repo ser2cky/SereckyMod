@@ -78,6 +78,8 @@ public:
 #define WEAPON_TRIPMINE			13
 #define	WEAPON_SATCHEL			14
 #define	WEAPON_SNARK			15
+#define WEAPON_COLT				16
+#define WEAPON_THOMPSON			17
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -104,7 +106,8 @@ public:
 #define SNARK_WEIGHT		5
 #define SATCHEL_WEIGHT		-10
 #define TRIPMINE_WEIGHT		-10
-
+#define COLT_WEIGHT			10
+#define THOMPSON_WEIGHT		15
 
 // weapon clip/carry ammo capacities
 #define URANIUM_MAX_CARRY		100
@@ -138,6 +141,8 @@ public:
 #define SATCHEL_MAX_CLIP		WEAPON_NOCLIP
 #define TRIPMINE_MAX_CLIP		WEAPON_NOCLIP
 #define SNARK_MAX_CLIP			WEAPON_NOCLIP
+#define COLT_MAX_CLIP			8
+#define THOMPSON_MAX_CLIP		30
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -156,6 +161,8 @@ public:
 #define TRIPMINE_DEFAULT_GIVE		1
 #define SNARK_DEFAULT_GIVE			5
 #define HIVEHAND_DEFAULT_GIVE		8
+#define COLT_DEFAULT_GIVE			8
+#define THOMPSON_DEFAULT_GIVE		30
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -415,7 +422,7 @@ public:
 			{
 				//The problem in question is the wrong name being used to look up HUD sprites and selecting weapons
 				//Only use LINK_WEAPON_TO_CLASS for the name used for sprites, and the name the classname is set to in Spawn()
-				ALERT( at_console, "Registering multiple names for the same weapon will cause problems" );
+				//assert( at_console, "Registering multiple names for the same weapon will cause problems" );
 				return;
 			}
 		}
@@ -560,7 +567,6 @@ private:
 	unsigned short m_usFireGlock1;
 	unsigned short m_usFireGlock2;
 };
-
 
 class CCrowbar : public CBasePlayerWeapon
 {
@@ -1078,5 +1084,75 @@ private:
 	unsigned short m_usSnarkFire;
 };
 
+class CColt : public CBasePlayerWeapon
+{
+public:
+	void Spawn(void);
+	void Precache(void);
+	int iItemSlot(void) { return 2; }
+	int GetItemInfo(ItemInfo* p);
+
+	void PrimaryAttack(void);
+	BOOL Deploy(void);
+	void Reload(void);
+	void WeaponIdle(void);
+
+	virtual BOOL UseDecrement(void)
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	int m_iShell;
+	unsigned short m_usFireColt;
+};
+
+class CThompson : public CBasePlayerWeapon
+{
+public:
+	void Spawn( void );
+	void Precache( void );
+	int iItemSlot( void ) { return 3; }
+	int GetItemInfo(ItemInfo *p);
+
+	void PrimaryAttack( void );
+	BOOL Deploy( void );
+	void Reload( void );
+	void WeaponIdle( void );
+
+	virtual BOOL UseDecrement( void )
+	{ 
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	int m_iShell;
+	unsigned short m_usFireThompson;
+};
+
+// Based off weapon.cfg from all of the
+// weapons in RTCW. - serecky 9.2.25
+enum rtcw_anims_e {
+	GUN_IDLE = 0,
+	GUN_IDLE1,
+	GUN_ATTACK1,
+	GUN_ATTACK2,
+	GUN_ATTACK3,
+	GUN_DROP,
+	GUN_RAISE,
+	GUN_RELOAD1,
+	GUN_RELOAD2,
+	GUN_RELOAD3,
+	GUN_ALT_SWITCH_FROM,
+	GUN_ALT_SWITCH_TO
+};
 
 #endif // WEAPONS_H

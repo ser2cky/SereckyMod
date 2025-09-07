@@ -16,6 +16,7 @@
 #include "entity_state.h"
 #include "cl_entity.h"
 #include "triangleapi.h"
+#include "particledan.h"
 
 #define DLLEXPORT __declspec( dllexport )
 
@@ -24,6 +25,8 @@ extern "C"
 	void DLLEXPORT HUD_DrawNormalTriangles( void );
 	void DLLEXPORT HUD_DrawTransparentTriangles( void );
 };
+
+CParticleDan* g_ParticleDan;
 
 //#define TEST_IT
 #if defined( TEST_IT )
@@ -117,7 +120,12 @@ Render any triangles with transparent rendermode needs here
 */
 void DLLEXPORT HUD_DrawTransparentTriangles( void )
 {
+	static float oldtime, frametime;
 
+	frametime = gEngfuncs.GetClientTime() - oldtime;
+	oldtime = gEngfuncs.GetClientTime();
+
+	g_ParticleDan->ParticleThink(frametime, gEngfuncs.GetClientTime());
 #if defined( TEST_IT )
 //	Draw_Triangles();
 #endif

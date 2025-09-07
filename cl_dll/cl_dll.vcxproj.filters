@@ -307,6 +307,21 @@
     <ClCompile Include="..\dlls\weapon_shared.cpp">
       <Filter>Source Files\hl</Filter>
     </ClCompile>
+    <ClCompile Include="wpn_shared\ev_hldm_colt.cpp">
+      <Filter>Source Files\wpn_shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dlls\wpn_shared\hl_wpn_colt.cpp">
+      <Filter>Source Files\hl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dlls\wpn_shared\hl_wpn_thompson.cpp">
+      <Filter>Source Files\hl</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\ev_hldm_thompson.cpp">
+      <Filter>Source Files\wpn_shared</Filter>
+    </ClCompile>
+    <ClCompile Include="particledan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="parsemsg.h">
@@ -436,6 +451,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wrect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="particledan.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

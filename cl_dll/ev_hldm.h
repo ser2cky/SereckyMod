@@ -39,6 +39,23 @@ typedef	enum
 #define VECTOR_CONE_15DEGREES Vector( 0.13053, 0.13053, 0.13053 )
 #define VECTOR_CONE_20DEGREES Vector( 0.17365, 0.17365, 0.17365 )
 
+// Based off weapon.cfg from all of the
+// weapons in RTCW. - serecky 9.2.25
+enum rtcw_anims_e {
+	GUN_IDLE = 0,
+	GUN_IDLE1,
+	GUN_ATTACK1,
+	GUN_ATTACK2,
+	GUN_ATTACK3,
+	GUN_DROP,
+	GUN_RAISE,
+	GUN_RELOAD1,
+	GUN_RELOAD2,
+	GUN_RELOAD3,
+	GUN_ALT_SWITCH_FROM,
+	GUN_ALT_SWITCH_TO
+};
+
 void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName );
 void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, int iBulletType );
 int EV_HLDM_CheckTracer( int idx, float *vecSrc, float *end, float *forward, float *right, int iBulletType, int iTracerFreq, int *tracerCount );

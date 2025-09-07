@@ -753,6 +753,7 @@ void ClientPrecache( void )
 
 	if (giPrecacheGrunt)
 		UTIL_PrecacheOther("monster_human_grunt");
+	UTIL_PrecacheOther("car");
 }
 
 /*

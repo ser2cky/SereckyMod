@@ -34,8 +34,10 @@
 
 #include "r_studioint.h"
 #include "com_model.h"
+#include "particledan.h"
 
 extern engine_studio_api_t IEngineStudio;
+extern vec3_t v_angles;
 
 static int tracerCount[ 32 ];
 
@@ -206,12 +208,47 @@ char *EV_HLDM_DamageDecal( physent_t *pe )
 	return decalname;
 }
 
+void EV_HLDM_ParticleTest(Vector pos)
+{
+	int i;
+
+
+		particledan_t* p = gHUD.m_ParticleDan.AllocParticle();
+		if (p)
+		{
+			p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/agrunt1.spr"));
+			p->color = Vector(255.0f / 255.0f, 255.0f / 255.0f, 0.0f);
+			p->rendermode = kRenderTransAdd;
+			p->alpha = 128.0f / 255.0f;
+			p->scale[0] = 24.0f;
+			p->scale[1] = 24.0f;
+
+			p->gravity = 200.0f;
+			p->flags = PDAN_COLLIDE_WORLD;
+			p->org[0] = pos[0] + gEngfuncs.pfnRandomFloat(-10.25f, 10.25f);
+			p->org[1] = pos[1] + gEngfuncs.pfnRandomFloat(-10.25f, 10.25f);
+			p->org[2] = pos[2] + gEngfuncs.pfnRandomFloat(-10.25f, 10.25f);
+			p->vel[2] = 50.0f;
+			p->frame = 0;
+			p->max_frames = 5;
+			p->framerate = 30.0f;
+			p->die = gEngfuncs.GetClientTime() + 5.0f;
+		}
+
+}
+
 void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName )
 {
+	vec3_t angles, forward, right, up;
 	int iRand;
 	physent_t *pe;
 
-	gEngfuncs.pEfxAPI->R_BulletImpactParticles( pTrace->endpos );
+	angles = v_angles;
+	AngleVectors(angles, forward, right, up);
+
+	//gEngfuncs.pEfxAPI->R_BulletImpactParticles( pTrace->endpos );
+
+	EV_HLDM_ParticleTest(pTrace->endpos + forward * -16.0f);
 
 	iRand = gEngfuncs.pfnRandomLong(0,0x7FFF);
 	if ( iRand < (0x7fff/2) )// not every bullet makes a sound.

@@ -165,6 +165,7 @@ private:
 
 
 #include "health.h"
+#include "particledan.h"
 
 
 #define FADE_TIME 100
@@ -617,6 +618,7 @@ public:
 	CHudAmmoSecondary	m_AmmoSecondary;
 	CHudTextMessage m_TextMessage;
 	CHudStatusIcons m_StatusIcons;
+	CParticleDan	m_ParticleDan;
 
 	void Init( void );
 	void VidInit( void );

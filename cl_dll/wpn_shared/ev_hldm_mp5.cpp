@@ -84,11 +84,17 @@ void EV_FireMP5( event_args_t *args )
 
 	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/shell.mdl");// brass shell
 	
+	static float NextAnimTime = 0.0f;
+
 	if ( EV_IsLocal( idx ) )
 	{
-		// Add muzzle flash to current weapon model
-		EV_MuzzleFlash();
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( MP5_FIRE1 + gEngfuncs.pfnRandomLong(0,2), 2 );
+		if (NextAnimTime <= gEngfuncs.GetClientTime())
+		{
+			// Add muzzle flash to current weapon model
+			EV_MuzzleFlash();
+			gEngfuncs.pEventAPI->EV_WeaponAnimation(MP5_FIRE1 + gEngfuncs.pfnRandomLong(0, 2), 2);
+			NextAnimTime = gEngfuncs.GetClientTime() + 0.2f;
+		}
 
 		V_PunchAxis( 0, gEngfuncs.pfnRandomFloat( -2, 2 ) );
 	}

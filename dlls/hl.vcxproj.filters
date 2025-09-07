@@ -330,6 +330,12 @@
     <ClCompile Include="weapon_shared.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_colt.cpp">
+      <Filter>Source Files\wpn_shared</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_thompson.cpp">
+      <Filter>Source Files\wpn_shared</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="activity.h">

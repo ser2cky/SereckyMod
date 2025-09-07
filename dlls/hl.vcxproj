@@ -63,7 +63,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <OutDir>..\..\..\FWGS\SereckyMod\dlls\</OutDir>
+    <OutDir>..\..\..\Half-Life\SereckyMod\dlls\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -260,6 +260,7 @@
     <ClCompile Include="weapons.cpp" />
     <ClCompile Include="weapon_shared.cpp" />
     <ClCompile Include="world.cpp" />
+    <ClCompile Include="wpn_shared\hl_wpn_colt.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_crossbow.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_crowbar.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_egon.cpp" />
@@ -273,6 +274,7 @@
     <ClCompile Include="wpn_shared\hl_wpn_satchel.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_shotgun.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_squeakgrenade.cpp" />
+    <ClCompile Include="wpn_shared\hl_wpn_thompson.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_tripmine.cpp" />
     <ClCompile Include="xen.cpp" />
     <ClCompile Include="zombie.cpp" />
