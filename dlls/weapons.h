@@ -80,6 +80,7 @@ public:
 #define	WEAPON_SNARK			15
 #define WEAPON_COLT				16
 #define WEAPON_THOMPSON			17
+#define WEAPON_RAILGUN			18
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -108,6 +109,7 @@ public:
 #define TRIPMINE_WEIGHT		-10
 #define COLT_WEIGHT			10
 #define THOMPSON_WEIGHT		15
+#define RAILGUN_WEIGHT		20
 
 // weapon clip/carry ammo capacities
 #define URANIUM_MAX_CARRY		100
@@ -143,6 +145,7 @@ public:
 #define SNARK_MAX_CLIP			WEAPON_NOCLIP
 #define COLT_MAX_CLIP			8
 #define THOMPSON_MAX_CLIP		30
+#define RAILGUN_MAX_CLIP		WEAPON_NOCLIP
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -163,6 +166,7 @@ public:
 #define HIVEHAND_DEFAULT_GIVE		8
 #define COLT_DEFAULT_GIVE			8
 #define THOMPSON_DEFAULT_GIVE		30
+#define RAILGUN_DEFAULT_GIVE		25
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1138,6 +1142,31 @@ private:
 	unsigned short m_usFireThompson;
 };
 
+class CQuake2Railgun : public CBasePlayerWeapon
+{
+public:
+	void Spawn(void);
+	void Precache(void);
+	int iItemSlot(void) { return 4; }
+	int GetItemInfo(ItemInfo* p);
+
+	void PrimaryAttack(void);
+	void WeaponIdle(void);
+	BOOL Deploy(void);
+
+	virtual BOOL UseDecrement(void)
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usFireRailgun;
+};
+
 // Based off weapon.cfg from all of the
 // weapons in RTCW. - serecky 9.2.25
 enum rtcw_anims_e {
@@ -1153,6 +1182,13 @@ enum rtcw_anims_e {
 	GUN_RELOAD3,
 	GUN_ALT_SWITCH_FROM,
 	GUN_ALT_SWITCH_TO
+};
+
+enum q2_anims_e {
+	Q2_DRAW = 0,
+	Q2_FIRE,
+	Q2_IDLE,
+	Q2_HOLSTER
 };
 
 #endif // WEAPONS_H

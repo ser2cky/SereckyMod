@@ -18,29 +18,30 @@
 
 extern "C"
 {
-// HLDM
-void EV_FireGlock1( struct event_args_s *args  );
-void EV_FireGlock2( struct event_args_s *args  );
-void EV_FireShotGunSingle( struct event_args_s *args  );
-void EV_FireShotGunDouble( struct event_args_s *args  );
-void EV_FireMP5( struct event_args_s *args  );
-void EV_FireMP52( struct event_args_s *args  );
-void EV_FirePython( struct event_args_s *args  );
-void EV_FireGauss( struct event_args_s *args  );
-void EV_SpinGauss( struct event_args_s *args  );
-void EV_Crowbar( struct event_args_s *args );
-void EV_FireCrossbow( struct event_args_s *args );
-void EV_FireCrossbow2( struct event_args_s *args );
-void EV_FireRpg( struct event_args_s *args );
-void EV_EgonFire( struct event_args_s *args );
-void EV_EgonStop( struct event_args_s *args );
-void EV_HornetGunFire( struct event_args_s *args );
-void EV_TripmineFire( struct event_args_s *args );
-void EV_SnarkFire( struct event_args_s *args );
-void EV_FireColt( struct event_args_s* args );
-void EV_FireThompson( struct event_args_s* args );
+	// HLDM
+	void EV_FireGlock1( struct event_args_s *args  );
+	void EV_FireGlock2( struct event_args_s *args  );
+	void EV_FireShotGunSingle( struct event_args_s *args  );
+	void EV_FireShotGunDouble( struct event_args_s *args  );
+	void EV_FireMP5( struct event_args_s *args  );
+	void EV_FireMP52( struct event_args_s *args  );
+	void EV_FirePython( struct event_args_s *args  );
+	void EV_FireGauss( struct event_args_s *args  );
+	void EV_SpinGauss( struct event_args_s *args  );
+	void EV_Crowbar( struct event_args_s *args );
+	void EV_FireCrossbow( struct event_args_s *args );
+	void EV_FireCrossbow2( struct event_args_s *args );
+	void EV_FireRpg( struct event_args_s *args );
+	void EV_EgonFire( struct event_args_s *args );
+	void EV_EgonStop( struct event_args_s *args );
+	void EV_HornetGunFire( struct event_args_s *args );
+	void EV_TripmineFire( struct event_args_s *args );
+	void EV_SnarkFire( struct event_args_s *args );
+	void EV_FireColt( struct event_args_s* args );
+	void EV_FireThompson( struct event_args_s* args );
+	void EV_FireRailgun(struct event_args_s* args);
 
-void EV_TrainPitchAdjust( struct event_args_s *args );
+	void EV_TrainPitchAdjust( struct event_args_s *args );
 }
 
 /*
@@ -79,4 +80,5 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/snarkfire.sc",				EV_SnarkFire );
 	gEngfuncs.pfnHookEvent( "events/colt1.sc",					EV_FireColt );
 	gEngfuncs.pfnHookEvent( "events/thompson1.sc",				EV_FireThompson );
+	gEngfuncs.pfnHookEvent( "events/railgun.sc",				EV_FireRailgun );
 }

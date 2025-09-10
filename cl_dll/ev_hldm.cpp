@@ -212,29 +212,33 @@ void EV_HLDM_ParticleTest(Vector pos)
 {
 	int i;
 
+	particledan_t* p = gHUD.m_ParticleDan.AllocParticle();
+	if (p)
+	{
+		for (i = 0; i < 3; i++)
+			p->org[i] = pos[i] + gEngfuncs.pfnRandomFloat(-10.25f, 10.25f);
 
-		particledan_t* p = gHUD.m_ParticleDan.AllocParticle();
-		if (p)
-		{
-			p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/agrunt1.spr"));
-			p->color = Vector(255.0f / 255.0f, 255.0f / 255.0f, 0.0f);
-			p->rendermode = kRenderTransAdd;
-			p->alpha = 128.0f / 255.0f;
-			p->scale[0] = 24.0f;
-			p->scale[1] = 24.0f;
+		p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/agrunt1.spr"));
+		p->color = Vector(255.0f / 255.0f, 255.0f / 255.0f, 0.0f);
+		p->rendermode = kRenderTransAdd;
+		//p->alpha = 128.0f / 255.0f;
+		p->alpha_step = 10.0f;
+		p->scale_step = 10.0f;
+		p->alpha_keyframe = { 1.0f, 0.5f, 1.0f, 0.5f, 0.5f };
+		p->scale_keyframe[0] = { 128.5f, 64.0f, 48.0f, 56.0f, 24.0f };
+		p->scale_keyframe[1] = { 128.5f, 96.0f, 48.0f, 56.0f, 24.0f };
+		p->scale[0] = p->scale_keyframe[0][0];
+		p->scale[1] = p->scale_keyframe[1][0];
+		p->alpha = p->alpha_keyframe[0];
 
-			p->gravity = 200.0f;
-			p->flags = PDAN_COLLIDE_WORLD;
-			p->org[0] = pos[0] + gEngfuncs.pfnRandomFloat(-10.25f, 10.25f);
-			p->org[1] = pos[1] + gEngfuncs.pfnRandomFloat(-10.25f, 10.25f);
-			p->org[2] = pos[2] + gEngfuncs.pfnRandomFloat(-10.25f, 10.25f);
-			p->vel[2] = 50.0f;
-			p->frame = 0;
-			p->max_frames = 5;
-			p->framerate = 30.0f;
-			p->die = gEngfuncs.GetClientTime() + 5.0f;
-		}
-
+		p->gravity = 200.0f;
+		p->flags = PDAN_ANIMATED_ALPHA | PDAN_ANIMATED_SCALE;
+		p->vel[2] = 50.0f;
+		p->frame = 0;
+		p->max_frames = 5;
+		p->framerate = 30.0f;
+		p->die = gEngfuncs.GetClientTime() + 5.0f;
+	}
 }
 
 void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName )

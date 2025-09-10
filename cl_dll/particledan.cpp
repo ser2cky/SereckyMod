@@ -32,6 +32,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
 
 #include "triangleapi.h"
 
@@ -43,6 +44,12 @@ static float flServerGravity = 800.0f;
 
 int r_numparticles;
 extern vec3_t v_angles;
+
+float Lerp(float a2, float a1, float frac)
+{
+	return a2 + frac * (a1 - a2);
+}
+
 
 /*
 ======================================
@@ -134,7 +141,7 @@ particledan_t* CParticleDan::AllocParticle(void)
 	p->next = active_particles;
 	active_particles = p;
 
-	gEngfuncs.Con_Printf("particleDan: particle allocated!\n");
+	//gEngfuncs.Con_Printf("particleDan: particle allocated!\n");
 
 	// clear old particle
 	VectorClear(p->vel);
@@ -142,22 +149,25 @@ particledan_t* CParticleDan::AllocParticle(void)
 	p->die = gEngfuncs.GetClientTime();
 	p->model = NULL;
 	p->rendermode = 0;
-	p->color[0] = 0.0f;
-	p->color[1] = 0.0f;
-	p->color[2] = 0.0f;
+	p->color = {0, 0, 0};
 	p->alpha = 0.0f;
 	p->gravity = 0.0f;
-	p->scale[0] = 0.0f;
-	p->scale[1] = 0.0f;
 	p->frame = 0;
 	p->max_frames = 0;
 	p->framerate = 1.0f;
 	p->flags = 0;
-	p->nextthink = 0;
+	p->nextanimate = 0;
+	p->alpha_time = 0.0f;
+	p->scale_time = 0.0f;
+	p->alpha_step = 0.0f;
+	p->scale_step = 0.0f;
+	p->brightness = 1.0f;
+	p->alpha_keyframe = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+	p->scale_keyframe[0] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+	p->scale_keyframe[1] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 
 	return p;
 }
-
 /*
 ======================================
 Draw
@@ -200,27 +210,48 @@ void CParticleDan::ParticleThink(float frametime, float realtime)
 
 		DrawParticle(p);
 
+		if ((p->flags & PDAN_ANIMATED_ALPHA) != 0)
+		{
+			if (!p->alpha_time)
+				p->alpha_time = 0.0f;
+
+			//p->alpha = p->alpha_keyframe[(int)p->alpha_time];
+			p->alpha = Lerp(p->alpha, p->alpha_keyframe[(int)p->alpha_time], frametime * p->alpha_step);
+			//p->alpha_time = fmod(p->alpha_time + (frametime * p->alpha_step), 4);
+			p->alpha_time = min(p->alpha_time + (frametime * p->alpha_step), 4);
+		}
+
+		if ((p->flags & PDAN_ANIMATED_SCALE) != 0)
+		{
+			if (!p->scale_time)
+				p->scale_time = 0.0f;
+
+			p->scale[0] = Lerp(p->scale[0], p->scale_keyframe[0][(int)p->scale_time], frametime * p->scale_step);
+			p->scale[1] = Lerp(p->scale[1], p->scale_keyframe[1][(int)p->scale_time], frametime * p->scale_step);
+			//p->scale[0] = p->scale_keyframe[0][(int)p->scale_time];
+			//p->scale[1] = p->scale_keyframe[1][(int)p->scale_time];
+			//p->scale_time = fmod(p->scale_time + (frametime * p->scale_step), 4);
+			p->scale_time = min(p->scale_time + (frametime * p->scale_step), 4);
+		}
+
 		// Added to prevent division by zero.
 		if (p->framerate < 1)
 			p->framerate = 1;
 
 		p->vel[2] -= frametime * p->gravity; // Apply gravity.
-		p->scale[0] += frametime * 50.0f; // Apply x-scale.
-		p->scale[1] += frametime * 50.0f; // Apply y-scale.
 
 		// Loop frames unless PDAN_ANIMATE_DIE is set.
 		if (p->max_frames > 0)
 		{
-			if (p->nextthink < realtime)
+			if (p->nextanimate < realtime)
 			{
-				if (p->frame == p->max_frames && (p->flags & PDAN_ANIMATE_DIE))
+				if (((p->frame + 1) == p->max_frames) && ((p->flags & PDAN_ANIMATE_DIE) != 0))
 				{
-					//gEngfuncs.Con_Printf("particleDan: finished animating!\n");
+					gEngfuncs.Con_Printf("particleDan: finished animating!\n");
 					p->die = realtime;
 				}
-
 				p->frame = (p->frame + 1) % p->max_frames;
-				p->nextthink = realtime + (1 / p->framerate);
+				p->nextanimate = realtime + (1 / p->framerate);
 			}
 		}
 
@@ -266,24 +297,28 @@ void CParticleDan::DrawParticle(particledan_t* p)
 
 	// START RENDERING!!!
 	gEngfuncs.pTriAPI->RenderMode(p->rendermode);
-	gEngfuncs.pTriAPI->Brightness(1.0f);
 	gEngfuncs.pTriAPI->Color4f(p->color[0], p->color[1], p->color[2], p->alpha);
+	gEngfuncs.pTriAPI->Brightness(p->brightness);
 
 	gEngfuncs.pTriAPI->SpriteTexture(p->model, p->frame);
 	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
 	gEngfuncs.pTriAPI->Begin(TRI_QUADS); //start our quad
 
-	gEngfuncs.pTriAPI->TexCoord2f(0.0f, 1.0f);
-	gEngfuncs.pTriAPI->Vertex3f(p->org[0] - right[0] + up[0], p->org[1] - right[1] + up[1], p->org[2] - right[2] + up[2]);
+	//top left
+	gEngfuncs.pTriAPI->TexCoord2f(0, 0);
+	gEngfuncs.pTriAPI->Vertex3f( p->org[0] - right[0] + up[0] ,  p->org[1] - right[1] + up[1] ,  p->org[2] - right[2] + up[2] );
 
-	gEngfuncs.pTriAPI->TexCoord2f(0.0f, 0.0f);
-	gEngfuncs.pTriAPI->Vertex3f(p->org[0] + right[0] + up[0], p->org[1] + right[1] + up[1], p->org[2] + right[2] + up[2]);
+	//bottom left
+	gEngfuncs.pTriAPI->TexCoord2f(0, 1);
+	gEngfuncs.pTriAPI->Vertex3f( p->org[0] - right[0] - up[0] ,  p->org[1] - right[1] - up[1] ,  p->org[2] - right[2] - up[2] );
 
-	gEngfuncs.pTriAPI->TexCoord2f(1.0f, 0.0f);
-	gEngfuncs.pTriAPI->Vertex3f(p->org[0] + right[0] - up[0], p->org[1] + right[1] - up[1], p->org[2] + right[2] - up[2]);
+	//bottom right
+	gEngfuncs.pTriAPI->TexCoord2f(1, 1);
+	gEngfuncs.pTriAPI->Vertex3f( p->org[0] + right[0] - up[0] , p->org[1] + right[1] - up[1] , p->org[2] + right[2] - up[2] );
 
-	gEngfuncs.pTriAPI->TexCoord2f(1.0f, 1.0f);
-	gEngfuncs.pTriAPI->Vertex3f(p->org[0] - right[0] - up[0], p->org[1] - right[1] - up[1], p->org[2] - right[2] - up[2]);
+	//top right
+	gEngfuncs.pTriAPI->TexCoord2f(1, 0);
+	gEngfuncs.pTriAPI->Vertex3f( p->org[0] + right[0] + up[0] , p->org[1] + right[1] + up[1] , p->org[2] + right[2] + up[2] );
 
 	gEngfuncs.pTriAPI->End(); //end our list of vertexes
 	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);

@@ -130,6 +130,7 @@ float		landTime = 0.0f;
 float		groundTime = 0.0f;
 float		view_ofs = 0.0f;
 static float landChange = -8.0f;
+float		client_bobtime = 0.0f;
 
 cvar_t		*cl_gun_roll;
 cvar_t		*cl_gun_yaw;
@@ -140,6 +141,7 @@ cvar_t		*cl_run_roll;
 cvar_t		*cl_bob_up;
 cvar_t		*cl_bob_pitch;
 cvar_t		*cl_bob_roll;
+cvar_t		*cl_bob_style;
 
 #define	LAND_DEFLECT_TIME	150
 #define	LAND_RETURN_TIME	300
@@ -204,12 +206,12 @@ void V_InterpolateAngles( float *start, float *end, float *output, float frac )
 
 /*
 ===============
-V_CalcBobNew
-Quake2/3 Viewbob.
+V_Q3_CalcBobNew
+Quake3 Viewbob.
 ===============
 */
 
-void V_CalcBobNew(struct ref_params_s* pparams)
+void V_Q3_CalcBobNew(struct ref_params_s* pparams)
 {
 	cl_entity_t* view;
 	static float offset = 0.0f;
@@ -242,50 +244,27 @@ void V_CalcBobNew(struct ref_params_s* pparams)
 	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("gun offset %.2f\n", offset));
 	if (offset > 0.0f)
 		offset = 0.0f;
-
 	view->origin[2] += offset;
 
 	// idle drift
-	if ( !pparams->onground ) {
-		scale = xyspeed + 40;
-		fracsin = sin(pparams->time - groundTime);
-		view->angles[ROLL] += scale * fracsin * 0.01f;
-		view->angles[YAW] += scale * fracsin * 0.01f;
-		view->angles[PITCH] += scale * fracsin * 0.01f;
-	}
+	scale = xyspeed + 40;
+	fracsin = sin((pparams->time * 1000) * 0.001);
+	view->angles[ROLL] += scale * fracsin * 0.01f;
+	view->angles[YAW] += scale * fracsin * 0.01f;
+	view->angles[PITCH] += scale * fracsin * 0.01f;
 
 	VectorCopy(view->origin, view->curstate.origin);
 	VectorCopy(view->angles, view->curstate.angles);
 }
 
-// gun angles from delta movement (UNCOMMENT FOR Q2 GOODNESS!!!) - serecky 8.27.25
-/*for (int i = 0; i < 3; i++)
-{
-	delta = ent->latched.prevangles[i] - ent->curstate.angles[i];
-	if (delta > 180)
-		delta -= 360;
-	if (delta < -180)
-		delta += 360;
-	if (delta > 45)
-		delta = 45;
-	if (delta < -45)
-		delta = -45;
-	if (i == YAW)
-		view->angles[ROLL] += 0.1 * delta;
-	view->angles[i] += 0.2 * delta;
-}
-
-VectorCopy(ent->angles, ent->curstate.angles);
-VectorCopy(ent->angles, ent->latched.prevangles);*/
-
 /*
 ===================
-V_CalcViewOffset
-Quake2/3 Camerabob.
+V_Q3_CalcViewOffset
+Quake3 Camerabob.
 ===================
 */
 
-void V_CalcViewOffset(struct ref_params_s* pparams)
+void V_Q3_CalcViewOffset(struct ref_params_s* pparams)
 {
 	float		speed, bob, delta, f;
 
@@ -295,7 +274,7 @@ void V_CalcViewOffset(struct ref_params_s* pparams)
 	pparams->viewangles[PITCH] += delta * cl_run_pitch->value;
 
 	delta = DotProduct(pparams->simvel, pparams->right);
-	pparams->viewangles[ROLL] += delta * cl_run_roll->value;
+	pparams->viewangles[ROLL] -= delta * cl_run_roll->value;
 
 	// add angles based on bob
 
@@ -305,7 +284,7 @@ void V_CalcViewOffset(struct ref_params_s* pparams)
 	delta = bobfracsin * cl_bob_pitch->value * speed;
 	if (in_duck.state & 1)
 		delta *= 3;		// crouching
-	pparams->viewangles[PITCH] += delta;
+	pparams->viewangles[PITCH] -= delta;
 	delta = bobfracsin * cl_bob_roll->value * speed;
 	if (in_duck.state & 1)
 		delta *= 3;		// crouching accentuates roll
@@ -343,15 +322,17 @@ void V_CalcViewOffset(struct ref_params_s* pparams)
 
 /*
 ============================
-V_CalcBobValues
-Calc Quake2/3 Viewbob Values
+V_Q3_CalcBobValues
+Calc Quake3 Viewbob Values
 ============================
 */
-void V_CalcBobValues( struct ref_params_s* pparams )
+void V_Q3_CalcBobValues( struct ref_params_s* pparams )
 {
-	static float nextbobtime = 0.0f, lastbobtime = 0.0f;
 	static float real_landtime = 0.0f;
 	int old;
+
+	if (pparams->frametime <= 0.0f)
+		return;
 
 	xyspeed = sqrt(pparams->simvel[0] * pparams->simvel[0] + pparams->simvel[1] * pparams->simvel[1]);
 
@@ -371,7 +352,6 @@ void V_CalcBobValues( struct ref_params_s* pparams )
 			landTime = real_landtime;
 			real_landtime = 0.0f;
 			bobtime = 0; // start at beginning of cycle again
-			lastbobtime = bobtime;
 		}
 
 		// Redid the cycle generation code to use the Quake3-Arena method
@@ -395,7 +375,235 @@ void V_CalcBobValues( struct ref_params_s* pparams )
 		groundTime = pparams->time;
 	}
 	bobcycle = (bobCycle & 128) >> 7;
-	bobfracsin = fabs(sin((bobCycle & 127) / 127.0 * M_PI));
+	bobfracsin = fabs(sin((bobCycle & 127) / 127.0 * M_PI)) * -1;
+
+	// determine the view offsets
+	V_Q3_CalcViewOffset(pparams);
+
+	// determine the gun offsets
+	V_Q3_CalcBobNew(pparams);
+}
+
+/*
+===============
+LerpAngle
+
+===============
+*/
+float LerpAngle(float a2, float a1, float frac)
+{
+	if (a1 - a2 > 180)
+		a1 -= 360;
+	if (a1 - a2 < -180)
+		a1 += 360;
+	return a2 + frac * (a1 - a2);
+}
+
+/*
+===============
+V_Q2_CalcBobNew
+Quake2 Viewbob.
+===============
+*/
+
+void V_Q2_CalcBobNew(struct ref_params_s* pparams)
+{
+	int		i;
+	float	delta;
+	cl_entity_t *view, *ent;
+	static vec3_t oldv = { 0, 0, 0 };
+	static vec3_t v = { 0, 0, 0 };
+	static float nextthink = 0.0f;
+
+	ent = gEngfuncs.GetLocalPlayer();
+	view = gEngfuncs.GetViewModel();
+
+	if (!view)
+		return;
+
+	if ( nextthink <= pparams->time || nextthink - pparams->time > 0.1f )
+	{
+		oldv = v; // Interp. helps to add that weird jankiness
+		// Quake2's viewbob had... - serecky 9.8.25
+
+		// gun angles from bobbing
+		v[ROLL] = xyspeed * bobfracsin * cl_gun_roll->value;
+		v[YAW] = xyspeed * bobfracsin * cl_gun_yaw->value;
+		if (bobcycle & 1)
+		{
+			v[ROLL] = -v[ROLL];
+			v[YAW] = -v[YAW];
+		}
+		v[PITCH] = xyspeed * bobfracsin * cl_gun_pitch->value;
+
+		// gun angles from delta movement
+		for (i = 0; i < 3; i++)
+		{
+			delta = (ent->prevstate.angles[i] - ent->curstate.angles[i]) * 5.0f;
+			if (delta > 180)
+				delta -= 360;
+			if (delta < -180)
+				delta += 360;
+			if (delta > 45)
+				delta = 45;
+			if (delta < -45)
+				delta = -45;
+			if (i == YAW)
+				v[ROLL] += 0.1 * delta;
+			v[i] += 0.2 * delta;
+		}
+		VectorCopy(ent->angles, ent->curstate.angles);
+		VectorCopy(ent->angles, ent->prevstate.angles);
+		nextthink = pparams->time + 0.1f;
+	}
+
+	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("OLD: %.2f %.2f %.2f\n", oldv[0], oldv[1], oldv[2]));
+	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("new: %.2f %.2f %.2f\n", v[0], v[1], v[2]));
+
+	for (i = 0; i < 3; i++)
+	{
+		oldv[i] = LerpAngle(oldv[i], v[i], pparams->frametime * 10.0f);
+	}
+
+	VectorAdd(oldv, view->angles, view->angles);
+	VectorCopy(view->angles, view->curstate.angles);
+}
+
+/*
+===================
+V_Q2_CalcViewOffset
+Quake2 Camerabob.
+===================
+*/
+
+void V_Q2_CalcViewOffset(struct ref_params_s* pparams)
+{
+	float		bob, ratio, delta;
+	static vec3_t oldv = { 0, 0, 0 };
+	static vec3_t v = { 0, 0, 0 };
+	static float nextthink = 0.0f;
+	int i;
+
+	if ( nextthink <= pparams->time || nextthink - pparams->time > 0.1f )
+	{
+		// add angles based on damage kick
+
+		oldv = v;
+
+		//ratio = (ent->client->v_dmg_time - level.time) / DAMAGE_TIME;
+		//if (ratio < 0)
+		//{
+		//	ratio = 0;
+		//	ent->client->v_dmg_pitch = 0;
+		//	ent->client->v_dmg_roll = 0;
+		//}
+		//angles[PITCH] += ratio * ent->client->v_dmg_pitch;
+		//angles[ROLL] += ratio * ent->client->v_dmg_roll;
+
+		//// add pitch based on fall kick
+
+		//ratio = (ent->client->fall_time - level.time) / FALL_TIME;
+		//if (ratio < 0)
+		//	ratio = 0;
+		//angles[PITCH] += ratio * ent->client->fall_value;
+
+		// add angles based on velocity
+
+		delta = DotProduct(pparams->simvel, pparams->forward);
+		v[PITCH] = delta * cl_run_pitch->value;
+
+		delta = DotProduct(pparams->simvel, pparams->right);
+		v[ROLL] += delta * cl_run_roll->value;
+
+		// add angles based on bob
+
+		delta = bobfracsin * cl_bob_pitch->value * xyspeed;
+		if (in_duck.state & 1)
+			delta *= 6;		// crouching
+		v[PITCH] = delta;
+		delta = bobfracsin * cl_bob_roll->value * xyspeed;
+		if (in_duck.state & 1)
+			delta *= 6;		// crouching
+		if (bobcycle & 1)
+			delta = -delta;
+		v[ROLL] = delta;
+
+		// add fall height
+
+		//ratio = (ent->client->fall_time - level.time) / FALL_TIME;
+		//if (ratio < 0)
+		//	ratio = 0;
+		//v[2] -= ratio * ent->client->fall_value * 0.4;
+		nextthink = pparams->time + 0.1f;
+	}
+
+	// add bob height
+
+	bob = bobfracsin * xyspeed * cl_bob_up->value;
+	if (bob > 6)
+		bob = 6;
+	//gi.DebugGraph (bob *2, 255);
+	pparams->viewheight[2] += bob;
+
+	for (i = 0; i < 3; i++)
+	{
+		oldv[i] = LerpAngle(oldv[i], v[i], pparams->frametime * 10.0f);
+	}
+
+	VectorAdd(oldv, pparams->viewangles, pparams->viewangles);
+}
+
+/*
+============================
+V_Q2_CalcBobValues
+Calc Quake2 Viewbob Values
+============================
+*/
+void V_Q2_CalcBobValues(struct ref_params_s* pparams)
+{
+	float bobtime = 0.0f; 
+	static float nextthink;
+
+	if (pparams->frametime <= 0.0f)
+		return;
+
+	cl_entity_t* view;
+	view = gEngfuncs.GetViewModel();
+
+	if ( nextthink <= pparams->time || nextthink - pparams->time > 0.1f)
+	{
+		xyspeed = sqrt(pparams->simvel[0] * pparams->simvel[0] + pparams->simvel[1] * pparams->simvel[1]);
+
+		if (xyspeed < 5)
+		{
+			bobmove = 0.0f;
+			client_bobtime = 0.0f;	// start at beginning of cycle again
+		}
+		else if (pparams->onground)
+		{	// so bobbing only cycles when on ground
+			if (xyspeed > 210.0f)
+				bobmove = 0.25f;
+			else if (xyspeed > 100.0f)
+				bobmove = 0.125f;
+			else
+				bobmove = 0.0625f;
+		}
+
+		bobtime = (client_bobtime += bobmove);
+
+		if (in_duck.state & 1)
+			bobtime *= 4.0f;
+
+		bobcycle = (int)bobtime;
+		bobfracsin = fabs(sin(bobtime * M_PI));
+
+		nextthink = pparams->time + 0.1f;
+	}
+	// determine the view offsets
+	V_Q2_CalcViewOffset(pparams);
+
+	// determine the gun offsets
+	V_Q2_CalcBobNew(pparams);
 }
 
 /*
@@ -583,16 +791,16 @@ Roll is induced by movement and damage
 */
 void V_CalcViewRoll ( struct ref_params_s *pparams )
 {
-	float		side;
+	//float		side;
 	cl_entity_t *viewentity;
 	
 	viewentity = gEngfuncs.GetEntityByIndex( pparams->viewentity );
 	if ( !viewentity )
 		return;
 
-	side = V_CalcRoll ( viewentity->angles, pparams->simvel, pparams->movevars->rollangle, pparams->movevars->rollspeed );
+	//side = V_CalcRoll ( viewentity->angles, pparams->simvel, pparams->movevars->rollangle, pparams->movevars->rollspeed );
 
-	pparams->viewangles[ROLL] += side;
+	//pparams->viewangles[ROLL] += side;
 
 	if ( pparams->health <= 0 && ( pparams->viewheight[2] != 0 ) )
 	{
@@ -833,13 +1041,11 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 // Q2/Q3 View-bob and Gun-bob start.
 
 	// calc values. moved for cleanliness
-	V_CalcBobValues(pparams);
+	if (cl_bob_style->value)
+		V_Q2_CalcBobValues(pparams);
+	else
+		V_Q3_CalcBobValues(pparams);
 
-	// determine the view offsets
-	V_CalcViewOffset(pparams);
-
-	// determine the gun offsets
-	V_CalcBobNew(pparams);
 
 // Q2/Q3 View-bob and Gun-bob end.
 
@@ -848,19 +1054,21 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	static float lerpPunch[3] = { 0, 0, 0 };
 	static float ev_lerpPunch[3] = { 0, 0, 0 };
 
-	/*
-	for (i = 0; i < 3; i++)
+	if (pparams->punchangle || ev_punchangle)
 	{
-		lerpPunch[i] = Interpolate(lerpPunch[i], pparams->punchangle[i], pparams->frametime * 10.0f);
-		ev_lerpPunch[i] = Interpolate(ev_lerpPunch[i], ev_punchangle[i], pparams->frametime * 10.0f);
-	}*/
+		for (i = 0; i < 3; i++)
+		{
+			lerpPunch[i] = LerpAngle(lerpPunch[i], pparams->punchangle[i], pparams->frametime * 10.0f);
+			ev_lerpPunch[i] = LerpAngle(ev_lerpPunch[i], ev_punchangle[i], pparams->frametime * 10.0f);
+		}
 
-	VectorAdd ( pparams->viewangles, lerpPunch, pparams->viewangles );
+		VectorAdd(pparams->viewangles, lerpPunch, pparams->viewangles);
 
-	// Include client side punch, too
-	VectorAdd ( pparams->viewangles, ev_lerpPunch, pparams->viewangles);
+		// Include client side punch, too
+		VectorAdd(pparams->viewangles, ev_lerpPunch, pparams->viewangles);
 
-	V_DropPunchAngle ( pparams->frametime, (float *)&ev_punchangle );
+		V_DropPunchAngle(pparams->frametime, (float*)&ev_punchangle);
+	}
 
 	// smooth out stair step ups
 #if 1
@@ -1854,11 +2062,12 @@ void V_Init (void)
 	cl_gun_yaw			= gEngfuncs.pfnRegisterVariable( "cl_gun_yaw", "0.01", 0 );
 	cl_gun_pitch		= gEngfuncs.pfnRegisterVariable( "cl_gun_pitch", "0.005", 0 );
 
-	cl_run_pitch		= gEngfuncs.pfnRegisterVariable( "cl_run_pitch", "0.002", 0 );
-	cl_run_roll			= gEngfuncs.pfnRegisterVariable( "cl_run_roll", "0.005", 0 );
+	cl_run_pitch		= gEngfuncs.pfnRegisterVariable( "cl_run_pitch", "0.0002", 0 );
+	cl_run_roll			= gEngfuncs.pfnRegisterVariable( "cl_run_roll", "0.0005", 0 );
 	cl_bob_up			= gEngfuncs.pfnRegisterVariable( "cl_bob_up", "0.005", 0 );
 	cl_bob_pitch		= gEngfuncs.pfnRegisterVariable( "cl_bob_pitch", "0.002", 0 );
 	cl_bob_roll			= gEngfuncs.pfnRegisterVariable( "cl_bob_roll", "0.002", 0 );
+	cl_bob_style		= gEngfuncs.pfnRegisterVariable( "cl_bob_style", "0", FCVAR_ARCHIVE);
 
 	cl_waterdist		= gEngfuncs.pfnRegisterVariable( "cl_waterdist","4", 0 );
 	cl_chasedist		= gEngfuncs.pfnRegisterVariable( "cl_chasedist","112", 0 );

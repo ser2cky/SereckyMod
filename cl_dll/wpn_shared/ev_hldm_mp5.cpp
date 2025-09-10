@@ -88,7 +88,7 @@ void EV_FireMP5( event_args_t *args )
 
 	if ( EV_IsLocal( idx ) )
 	{
-		if (NextAnimTime <= gEngfuncs.GetClientTime())
+		if (NextAnimTime <= gEngfuncs.GetClientTime() || (NextAnimTime - gEngfuncs.GetClientTime()) > 0.2f )
 		{
 			// Add muzzle flash to current weapon model
 			EV_MuzzleFlash();

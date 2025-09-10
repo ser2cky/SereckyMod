@@ -336,6 +336,9 @@
     <ClCompile Include="wpn_shared\hl_wpn_thompson.cpp">
       <Filter>Source Files\wpn_shared</Filter>
     </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_railgun.cpp">
+      <Filter>Source Files\wpn_shared</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="activity.h">
