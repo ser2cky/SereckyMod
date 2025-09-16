@@ -95,7 +95,7 @@ void CFlame::FlameThink(void)
 		return;
 	}
 
-	if (pEnemy != NULL)
+	if (pEnemy != nullptr)
 	{
 		pev->origin = pEnemy->Center();
 
@@ -134,13 +134,12 @@ void CFlame::FlameThink(void)
 void CFlame::FlameDestroy(void)
 {
 	CBaseEntity* pEnemy = CBaseEntity::Instance(pev->enemy);
-	if (pev->enemy != NULL)
+	if (pEnemy != nullptr)
 	{
 		pEnemy->m_flNumFlames = 0.0f;
 		pEnemy->pev->renderamt = 255;
 		pEnemy->pev->rendermode = kRenderNormal;
 		pEnemy->pev->renderfx = kRenderFxNone;
-		pEnemy->m_flNumFlames--;
 	}
 
 	pev->enemy = NULL;

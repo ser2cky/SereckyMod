@@ -415,7 +415,15 @@ void CFlareGun::PrimaryAttack(void)
 {
 	if (m_iClip == 0)
 	{
-		Reload();
+		if (m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] >= 0)
+		{
+			Reload();
+		}
+		else 
+		{
+			PlayEmptySound();
+			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.2;
+		}
 		return;
 	}
 
