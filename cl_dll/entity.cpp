@@ -50,7 +50,7 @@ Smoke effect created by Flareguns...
 ======================================
 */
 
-inline void Flaregun_Smoke(vec3_t org, cl_entity_s* ent)
+void Flaregun_Smoke(vec3_t org, cl_entity_s* ent)
 {
 	dlight_t* glow = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
 
@@ -126,45 +126,41 @@ Smoke effect created by Flareguns...
 ======================================
 */
 
-inline void Flames(vec3_t org, cl_entity_s* ent)
+void Flames(vec3_t org, cl_entity_s* ent)
 {
 	int i;
 
-	if (ent->baseline.animtime <= gEngfuncs.GetClientTime() || ent->baseline.animtime - gEngfuncs.GetClientTime() > 0.1f)
+	particledan_t* p = gHUD.m_ParticleDan.AllocParticle();
+	if (p)
 	{
-		particledan_t* p = gHUD.m_ParticleDan.AllocParticle();
-		if (p)
+		for (i = 0; i < 3; i++)
 		{
-			for (i = 0; i < 3; i++)
-			{
-				p->org[i] = org[i] + gEngfuncs.pfnRandomFloat(-5.0f, 5.0f);
-				p->vel[i] = gEngfuncs.pfnRandomFloat(-1.25f, 1.25f);
-			}
-			p->vel[2] += 40.0f;
-			p->gravity = 0.0f;
-			p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH;
-
-			// Visual.
-			p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/floorfire4_.spr"));
-			p->brightness = 1.0f;
-			p->rendermode = kRenderTransAdd;
-			p->color = Vector(1.0f, 1.0f, 1.0f);
-			p->alpha = 1.0f;
-			p->scale = { 0.0f, 0.0f };
-
-			// Animation.
-			p->scale_step = 1.5f;
-			p->growth_max = { 16.0f, 32.0f };
-
-			p->alpha_step = 2.0f;
-			p->alpha_keyframe = { p->alpha, 0.0f, 0.0f, 0.0f, 0.0f };
-
-			p->frame = 0;
-			p->max_frames = 20;
-			p->framerate = 30.0f;
-			p->die = gEngfuncs.GetClientTime() + 3.5f;
+			p->org[i] = org[i] + gEngfuncs.pfnRandomFloat(-5.0f, 5.0f);
+			p->vel[i] = gEngfuncs.pfnRandomFloat(-1.25f, 1.25f);
 		}
-		ent->baseline.animtime = gEngfuncs.GetClientTime() + 0.5f;
+		p->vel[2] += 40.0f;
+		p->gravity = 0.0f;
+		p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH;
+
+		// Visual.
+		p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/floorfire4_.spr"));
+		p->brightness = 1.0f;
+		p->rendermode = kRenderTransAdd;
+		p->color = Vector(1.0f, 1.0f, 1.0f);
+		p->alpha = 1.0f;
+		p->scale = { 0.0f, 0.0f };
+
+		// Animation.
+		p->scale_step = 1.5f;
+		p->growth_max = { 16.0f, 32.0f };
+
+		p->alpha_step = 4.5f;
+		p->alpha_keyframe = { p->alpha, 0.0f, 0.0f, 0.0f, 0.0f };
+
+		p->frame = 0;
+		p->max_frames = 20;
+		p->framerate = 30.0f;
+		p->die = gEngfuncs.GetClientTime() + 1.5f;
 	}
 }
 
@@ -184,14 +180,14 @@ int DLLEXPORT HUD_AddEntity( int type, struct cl_entity_s *ent, const char *mode
 		{
 			Flaregun_Smoke(ent->curstate.origin, ent);
 		}
-
-		if ((ent->curstate.rendercolor.r == 255)
-			&& (ent->curstate.rendercolor.g == 128)
-			&& (ent->curstate.rendercolor.b == 0)
-			&& (ent->curstate.renderfx == kRenderFxGlowShell))
-		{
-			Flames(ent->curstate.origin, ent);
-		}
+		// Moved to StudioModelRenderer.cpp -serecky 9.16.25
+		//if ((ent->curstate.rendercolor.r == 255)
+		//	&& (ent->curstate.rendercolor.g == 128)
+		//	&& (ent->curstate.rendercolor.b == 0)
+		//	&& (ent->curstate.renderfx == kRenderFxGlowShell))
+		//{
+		//	Flames(ent->curstate.origin, ent);
+		//}
 	}
 	break;
 	case ET_PLAYER:

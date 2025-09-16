@@ -336,7 +336,7 @@ void V_Q3_CalcBobValues( struct ref_params_s* pparams )
 
 	xyspeed = sqrt(pparams->simvel[0] * pparams->simvel[0] + pparams->simvel[1] * pparams->simvel[1]);
 
-	if (!pparams->onground) {
+	if (!pparams->onground && pparams->simvel[2] < -150.0f) {
 		// Putting actual landtime somewhere else so it doesn't mess up dropping.
 		real_landtime = pparams->time;
 

@@ -2611,7 +2611,7 @@ void PM_CheckWaterJump (void)
 // Screen punches moved to view.cpp!! - serecky 8.27.25
 void PM_CheckFalling( void )
 {
-	if ( pmove->onground != -1 && !pmove->dead && pmove->flFallVelocity )
+	if ( pmove->onground != -1 && !pmove->dead && pmove->flFallVelocity >= 150)
 	{
 		float fvol = 0.5;
 

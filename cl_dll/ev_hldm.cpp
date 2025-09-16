@@ -273,7 +273,7 @@ void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName )
 
 	//gEngfuncs.pEfxAPI->R_BulletImpactParticles( pTrace->endpos );
 
-	EV_HLDM_ParticleTest(pTrace->endpos + forward * -16.0f);
+	//EV_HLDM_ParticleTest(pTrace->endpos + forward * -16.0f);
 
 	iRand = gEngfuncs.pfnRandomLong(0,0x7FFF);
 	if ( iRand < (0x7fff/2) )// not every bullet makes a sound.
