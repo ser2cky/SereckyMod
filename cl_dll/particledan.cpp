@@ -22,6 +22,12 @@
 
 	9/3/25:
 	Created.
+
+	9/3/25-9/12/25:
+	Particle system is pretty decent
+	now. The only issues it has now, is
+	the inability for it to rotate, and
+	create trails.
 =============================================
 */
 
@@ -29,10 +35,12 @@
 #include "cl_util.h"
 #include "parsemsg.h"
 #include "particledan.h"
+#include "r_efx.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
+#include <vector>
 
 #include "triangleapi.h"
 
@@ -42,7 +50,7 @@ static particledan_t *particles = NULL;
 static float flNextAnimateTime = 0.0f;
 static float flServerGravity = 800.0f;
 
-int r_numparticles;
+int r_numparticles = PDAN_MAX_PARTICLES;
 extern vec3_t v_angles;
 
 float Lerp(float a2, float a1, float frac)
@@ -85,21 +93,8 @@ InitParticles
 
 void CParticleDan::InitParticles(void)
 {
-	int		i;
-
-	//i = COM_CheckParm("-particles");
-
-	//if (i)
-	//{
-		r_numparticles += 1;
-		if (r_numparticles < PDAN_ABSOLUTE_MIN_PARTICLES)
-			r_numparticles = PDAN_ABSOLUTE_MIN_PARTICLES;
-	//}
-//	else
-	//{
-	//	r_numparticles = MAX_PARTICLES;
-	//}
 	particles = (particledan_t*)malloc(r_numparticles * sizeof(particledan_t));
+	ClearParticles();
 }
 
 /*
@@ -122,6 +117,20 @@ void CParticleDan::ClearParticles(void)
 
 /*
 ======================================
+Shutdown
+======================================
+*/
+
+void CParticleDan::Shutdown(void)
+{
+	ClearParticles();
+	if (particles)
+		free(particles);
+	particles = NULL;
+}
+
+/*
+======================================
 AllocParticle
 ======================================
 */
@@ -132,7 +141,7 @@ particledan_t* CParticleDan::AllocParticle(void)
 
 	if (!free_particles)
 	{
-		gEngfuncs.Con_Printf("particleDan: Sorry! No free particles! Limit is: 8192\n");
+		gEngfuncs.Con_Printf("particleDan: Sorry! No free particles! Limit is: 32768\nPlease optimize particle usage! Thanks!\n");
 		return NULL;
 	}
 
@@ -150,24 +159,57 @@ particledan_t* CParticleDan::AllocParticle(void)
 	p->model = NULL;
 	p->rendermode = 0;
 	p->color = {0, 0, 0};
-	p->alpha = 0.0f;
-	p->gravity = 0.0f;
+	p->brightness = 1.0f;
+
 	p->frame = 0;
 	p->max_frames = 0;
 	p->framerate = 1.0f;
-	p->flags = 0;
-	p->nextanimate = 0;
+	p->nextanimate = 0.0f;
+	p->gravity = 0.0f;
+
+	p->alpha = 0.0f;
 	p->alpha_time = 0.0f;
-	p->scale_time = 0.0f;
 	p->alpha_step = 0.0f;
-	p->scale_step = 0.0f;
-	p->brightness = 1.0f;
 	p->alpha_keyframe = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+
+	p->scale = {0.0f, 0.0f};
+	p->scale_time = 0.0f;
+	p->scale_step = 0.0f;
 	p->scale_keyframe[0] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 	p->scale_keyframe[1] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+	p->growth_max = {0.0f, 0.0f};
 
+	p->part_freq = 0.0f;
+	p->flags = 0;
 	return p;
 }
+
+/*
+======================================
+AllocParticleDelay
+	I tried getting this to work..
+	but it doesn't and I'm
+	too lazy to fix it!
+	- serecky 9.14.25
+======================================
+*/
+
+particledan_t* CParticleDan::AllocParticleDelay(float delay)
+{
+	particledan_t* p = AllocParticle();
+
+	if (p)
+	{
+		if (p->part_freq < gEngfuncs.GetClientTime() || p->part_freq - gEngfuncs.GetClientTime() > delay)
+		{
+			p->part_freq = gEngfuncs.GetClientTime() + delay;
+			return p;
+		}
+	}
+
+	return NULL;
+}
+
 /*
 ======================================
 Draw
@@ -176,7 +218,12 @@ Draw
 
 void CParticleDan::ParticleThink(float frametime, float realtime)
 {
-	particledan_t *p, *kill;
+	particledan_t *p, *kill, *trail;
+	vec3_t delta;
+
+	if (frametime <= 0.0f)
+		return;
+	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("Frametime: %f\n", frametime));
 
 	for (;; )
 	{
@@ -188,7 +235,7 @@ void CParticleDan::ParticleThink(float frametime, float realtime)
 			free_particles = kill;
 			//gEngfuncs.Con_Printf("particleDan: killed a particle!\n");
 			continue;
-		}
+		}   
 		break;
 	}
 
@@ -210,12 +257,18 @@ void CParticleDan::ParticleThink(float frametime, float realtime)
 
 		DrawParticle(p);
 
+		VectorCopy(p->org, p->oldorg);
+
+		if ((p->flags & PDAN_GROWTH) != 0)
+		{
+			p->scale[0] = Lerp(p->scale[0], p->growth_max[0], frametime * p->scale_step);
+			p->scale[1] = Lerp(p->scale[1], p->growth_max[1], frametime * p->scale_step);
+		}
+
 		if ((p->flags & PDAN_ANIMATED_ALPHA) != 0)
 		{
 			if (!p->alpha_time)
 				p->alpha_time = 0.0f;
-
-			//p->alpha = p->alpha_keyframe[(int)p->alpha_time];
 			p->alpha = Lerp(p->alpha, p->alpha_keyframe[(int)p->alpha_time], frametime * p->alpha_step);
 			//p->alpha_time = fmod(p->alpha_time + (frametime * p->alpha_step), 4);
 			p->alpha_time = min(p->alpha_time + (frametime * p->alpha_step), 4);
@@ -228,8 +281,6 @@ void CParticleDan::ParticleThink(float frametime, float realtime)
 
 			p->scale[0] = Lerp(p->scale[0], p->scale_keyframe[0][(int)p->scale_time], frametime * p->scale_step);
 			p->scale[1] = Lerp(p->scale[1], p->scale_keyframe[1][(int)p->scale_time], frametime * p->scale_step);
-			//p->scale[0] = p->scale_keyframe[0][(int)p->scale_time];
-			//p->scale[1] = p->scale_keyframe[1][(int)p->scale_time];
 			//p->scale_time = fmod(p->scale_time + (frametime * p->scale_step), 4);
 			p->scale_time = min(p->scale_time + (frametime * p->scale_step), 4);
 		}
@@ -238,7 +289,10 @@ void CParticleDan::ParticleThink(float frametime, float realtime)
 		if (p->framerate < 1)
 			p->framerate = 1;
 
-		p->vel[2] -= frametime * p->gravity; // Apply gravity.
+		if (p->gravity > 0.0f)
+			p->vel[2] -= frametime * p->gravity; // Apply gravity.
+		else
+			p->vel[2] += frametime * p->gravity; // Apply gravity.
 
 		// Loop frames unless PDAN_ANIMATE_DIE is set.
 		if (p->max_frames > 0)
@@ -247,7 +301,7 @@ void CParticleDan::ParticleThink(float frametime, float realtime)
 			{
 				if (((p->frame + 1) == p->max_frames) && ((p->flags & PDAN_ANIMATE_DIE) != 0))
 				{
-					gEngfuncs.Con_Printf("particleDan: finished animating!\n");
+					//gEngfuncs.Con_Printf("particleDan: finished animating!\n");
 					p->die = realtime;
 				}
 				p->frame = (p->frame + 1) % p->max_frames;
@@ -275,6 +329,9 @@ void CParticleDan::ParticleThink(float frametime, float realtime)
 		p->org[0] += p->vel[0] * frametime;
 		p->org[1] += p->vel[1] * frametime;
 		p->org[2] += p->vel[2] * frametime;
+
+		//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("OLD: %.2f %.2f %.2f\n", p->oldorg[0], p->oldorg[1], p->oldorg[2]));
+		//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("new: %.2f %.2f %.2f\n", p->org[0], p->org[1], p->org[2]));
 	}
 }
 

@@ -14,14 +14,9 @@
 ****/
 #include "../hud.h"
 #include "../cl_util.h"
-#include "const.h"
-#include "entity_state.h"
 #include "cl_entity.h"
-#include "entity_types.h"
-#include "usercmd.h"
-#include "pm_defs.h"
-#include "pm_materials.h"
 
+#include "pm_defs.h"
 #include "../eventscripts.h"
 #include "../ev_hldm.h"
 
@@ -29,13 +24,6 @@
 #include "event_api.h"
 #include "event_args.h"
 #include "../in_defs.h"
-
-#include <string.h>
-
-#include "r_studioint.h"
-#include "com_model.h"
-
-extern engine_studio_api_t IEngineStudio;
 
 void V_PunchAxis( int axis, float punch );
 void VectorAngles( const float *forward, float *angles );

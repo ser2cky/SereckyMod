@@ -40,6 +40,8 @@ extern "C"
 	void EV_FireColt( struct event_args_s* args );
 	void EV_FireThompson( struct event_args_s* args );
 	void EV_FireRailgun(struct event_args_s* args);
+	void EV_StopFlames(struct event_args_s* args);
+	void EV_FireFlare(struct event_args_s* args);
 
 	void EV_TrainPitchAdjust( struct event_args_s *args );
 }
@@ -81,4 +83,6 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/colt1.sc",					EV_FireColt );
 	gEngfuncs.pfnHookEvent( "events/thompson1.sc",				EV_FireThompson );
 	gEngfuncs.pfnHookEvent( "events/railgun.sc",				EV_FireRailgun );
+	gEngfuncs.pfnHookEvent( "events/railgun1.sc",				EV_StopFlames );
+	gEngfuncs.pfnHookEvent( "events/flare1.sc",					EV_FireFlare );
 }

@@ -56,6 +56,7 @@ enum rtcw_anims_e {
 	GUN_ALT_SWITCH_TO
 };
 
+bool CheckPVS(int playerIndex);
 void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName );
 void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, int iBulletType );
 int EV_HLDM_CheckTracer( int idx, float *vecSrc, float *end, float *forward, float *right, int iBulletType, int iTracerFreq, int *tracerCount );

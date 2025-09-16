@@ -19,6 +19,8 @@
 #include "pm_defs.h"
 #include "pmtrace.h"	
 #include "pm_shared.h"
+#include "com_model.h"
+#include "particledan.h"
 
 #define DLLEXPORT __declspec( dllexport )
 
@@ -27,6 +29,7 @@ void Game_AddObjects( void );
 extern vec3_t v_origin;
 
 int g_iAlive = 1;
+static float flNextSmoke = 0.0f;
 
 extern "C" 
 {
@@ -41,6 +44,131 @@ extern "C"
 }
 
 /*
+======================================
+Flaregun_Smoke
+Smoke effect created by Flareguns...
+======================================
+*/
+
+inline void Flaregun_Smoke(vec3_t org, cl_entity_s* ent)
+{
+	dlight_t* glow = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
+
+	VectorCopy(org, glow->origin);
+	glow->radius = gEngfuncs.pfnRandomFloat(24.0f, 32.0f);
+	glow->color.r = 255;
+	glow->color.g = 56;
+	glow->color.b = 56;
+	glow->decay = 100.0f;
+	glow->die = gEngfuncs.GetClientTime() + 0.1f;
+
+	particledan_t* flare = gHUD.m_ParticleDan.AllocParticle();
+	float flScale = gEngfuncs.pfnRandomFloat(4.0f, 8.0f);
+	if (flare)
+	{
+		flare->org = org;
+		flare->gravity = 0.0f;
+		flare->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/redflare1.spr"));
+		flare->brightness = gEngfuncs.pfnRandomFloat(1.0f, 4.0f);
+		flare->rendermode = kRenderTransAdd;
+		flare->color = Vector(1.0f, 1.0f, 1.0f);
+		flare->alpha = 1.0f;
+		flare->scale = { flScale, flScale };
+		flare->frame = 0;
+		flare->max_frames = 0;
+		flare->die = gEngfuncs.GetClientTime();
+	}
+
+	int i;
+	// Create smoke periodically using this ultra evil trick... - serecky 9.14.25
+	if (ent->baseline.animtime <= gEngfuncs.GetClientTime() || ent->baseline.animtime - gEngfuncs.GetClientTime() > 0.1f)
+	{
+		particledan_t* p = gHUD.m_ParticleDan.AllocParticle();
+		if (p)
+		{
+			for (i = 0; i < 3; i++)
+			{
+				p->org[i] = org[i] + gEngfuncs.pfnRandomFloat(-1.25f, 1.25f);
+				p->vel[i] = gEngfuncs.pfnRandomFloat(-5.0f, 5.0f);
+			}
+			p->vel[2] += 20.0f;
+			p->gravity = 0.0f;
+			p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH;
+
+			// Visual.
+			p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/particle_smokegrenade.spr"));
+			p->brightness = 1.0f;
+			p->rendermode = kRenderTransAdd;
+			p->color = Vector(1.0f, 56.0f / 255.0f, 56.0f / 255.0f);
+			p->alpha = 1.0f;
+			p->scale = { 0.25f, 0.25f };
+
+			// Animation.
+			p->scale_step = 0.5f;
+			p->growth_max = {24.0f, 24.0f};
+
+			p->alpha_step = 2.0f;
+			p->alpha_keyframe = { p->alpha, 0.0f, 0.0f, 0.0f, 0.0f };
+
+			p->frame = 0;
+			p->max_frames = 0;
+			p->framerate = 0.0f;
+			p->die = gEngfuncs.GetClientTime() + 3.5f;
+		}
+		ent->baseline.animtime = gEngfuncs.GetClientTime() + 0.05f;
+	}
+}
+
+/*
+======================================
+Flaregun_Smoke
+Smoke effect created by Flareguns...
+======================================
+*/
+
+inline void Flames(vec3_t org, cl_entity_s* ent)
+{
+	int i;
+
+	if (ent->baseline.animtime <= gEngfuncs.GetClientTime() || ent->baseline.animtime - gEngfuncs.GetClientTime() > 0.1f)
+	{
+		particledan_t* p = gHUD.m_ParticleDan.AllocParticle();
+		if (p)
+		{
+			for (i = 0; i < 3; i++)
+			{
+				p->org[i] = org[i] + gEngfuncs.pfnRandomFloat(-5.0f, 5.0f);
+				p->vel[i] = gEngfuncs.pfnRandomFloat(-1.25f, 1.25f);
+			}
+			p->vel[2] += 40.0f;
+			p->gravity = 0.0f;
+			p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH;
+
+			// Visual.
+			p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/floorfire4_.spr"));
+			p->brightness = 1.0f;
+			p->rendermode = kRenderTransAdd;
+			p->color = Vector(1.0f, 1.0f, 1.0f);
+			p->alpha = 1.0f;
+			p->scale = { 0.0f, 0.0f };
+
+			// Animation.
+			p->scale_step = 1.5f;
+			p->growth_max = { 16.0f, 32.0f };
+
+			p->alpha_step = 2.0f;
+			p->alpha_keyframe = { p->alpha, 0.0f, 0.0f, 0.0f, 0.0f };
+
+			p->frame = 0;
+			p->max_frames = 20;
+			p->framerate = 30.0f;
+			p->die = gEngfuncs.GetClientTime() + 3.5f;
+		}
+		ent->baseline.animtime = gEngfuncs.GetClientTime() + 0.5f;
+	}
+}
+
+/*
 ========================
 HUD_AddEntity
 	Return 0 to filter entity from visible list for rendering
@@ -51,6 +179,21 @@ int DLLEXPORT HUD_AddEntity( int type, struct cl_entity_s *ent, const char *mode
 	switch ( type )
 	{
 	case ET_NORMAL:
+	{
+		if (!strcmp(ent->model->name, "models/flare.mdl"))
+		{
+			Flaregun_Smoke(ent->curstate.origin, ent);
+		}
+
+		if ((ent->curstate.rendercolor.r == 255)
+			&& (ent->curstate.rendercolor.g == 128)
+			&& (ent->curstate.rendercolor.b == 0)
+			&& (ent->curstate.renderfx == kRenderFxGlowShell))
+		{
+			Flames(ent->curstate.origin, ent);
+		}
+	}
+	break;
 	case ET_PLAYER:
 	case ET_BEAM:
 	case ET_TEMPENTITY:

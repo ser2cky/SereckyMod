@@ -375,7 +375,7 @@ CHud :: ~CHud()
 		}
 		m_pHudList = NULL;
 	}
-
+	m_ParticleDan.Shutdown();
 	ServersShutdown();
 }
 

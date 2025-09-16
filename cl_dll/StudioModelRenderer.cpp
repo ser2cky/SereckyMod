@@ -31,6 +31,7 @@
 
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
+extern void Flaregun_Smoke(vec3_t org, cl_entity_s* ent);
 
 /////////////////////
 // Implementation of CStudioModelRenderer.h
@@ -1140,6 +1141,25 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 			cl_entity_t *ent = gEngfuncs.GetEntityByIndex( m_pCurrentEntity->index );
 
 			memcpy( ent->attachment, m_pCurrentEntity->attachment, sizeof( vec3_t ) * 4 );
+		}
+	}
+
+	// Flaregun Hack!! - serecky 9/15/25
+	if ((m_pCurrentEntity->curstate.rendercolor.r == 255)
+		&& (m_pCurrentEntity->curstate.rendercolor.g == 128)
+		&& (m_pCurrentEntity->curstate.rendercolor.b == 0)
+		&& (m_pCurrentEntity->curstate.renderfx == kRenderFxGlowShell))
+	{
+		mstudiobone_t* pbone;
+		vec3_t pos;
+		int i;
+
+		pbone = (mstudiobone_t*)((byte*)m_pStudioHeader + m_pStudioHeader->boneindex);
+
+		for (i = 0; i < m_pStudioHeader->numbones; i++)
+		{
+			pos = { pbone[i].value[0], pbone[i].value[1], pbone[i].value[2] };
+			Flaregun_Smoke(pos, m_pCurrentEntity);
 		}
 	}
 

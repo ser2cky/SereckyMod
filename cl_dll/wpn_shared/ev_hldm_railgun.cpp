@@ -14,13 +14,8 @@
 ****/
 #include "../hud.h"
 #include "../cl_util.h"
-#include "const.h"
-#include "entity_state.h"
 #include "cl_entity.h"
-#include "entity_types.h"
-#include "usercmd.h"
 #include "pm_defs.h"
-#include "pm_materials.h"
 
 #include "../eventscripts.h"
 #include "../ev_hldm.h"
@@ -30,9 +25,6 @@
 #include "event_args.h"
 #include "../in_defs.h"
 
-#include <string.h>
-
-#include "r_studioint.h"
 #include "com_model.h"
 #include "../particledan.h"
 
@@ -40,63 +32,177 @@ extern "C"
 {
 	// HLDM
 	void EV_FireRailgun(struct event_args_s* args);
+	void EV_StopFlames(struct event_args_s* args);
 }
+
+TEMPENTITY* pFlameSpawner = nullptr;
+
+/*
+======================================
+EV_FlameParticles
+======================================
+*/
 
 void EV_FlameParticles(vec3_t org, vec3_t vel)
 {
 	int i;
 	particledan_t* p = gHUD.m_ParticleDan.AllocParticle();
 
-	for (i = 0; i < 3; i++)
+	if (p)
 	{
-		if (p)
+		for (i = 0; i < 3; i++)
+			p->org[i] = org[i] + gEngfuncs.pfnRandomFloat(-0.5f, 0.5f);
+		p->vel = vel;
+		p->gravity = 0.0f;
+		p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH | PDAN_ANIMATE_DIE;
+
+		// Visual.
+		p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/kp_explosion.spr"));
+		p->brightness = 1.0f;
+		p->rendermode = kRenderTransAdd;
+		p->color = Vector(1.0f, 1.0f, 1.0f);
+		p->alpha = gEngfuncs.pfnRandomFloat(0.5f, 1.0f);
+		p->scale = {2.0f, 2.0f};
+
+		// Animation.
+		p->scale_step = gEngfuncs.pfnRandomFloat(1.0f, 2.5f);
+		p->growth_max = { 128.0f, 128.0f };
+
+		p->alpha_step = 20.0f;
+		p->alpha_keyframe = { p->alpha, p->alpha, p->alpha, p->alpha, 0.0f };
+
+		p->frame = gEngfuncs.pfnRandomLong(0, 13);
+		p->max_frames = 13;
+		p->framerate = 60.0f;
+		p->die = gEngfuncs.GetClientTime() + 1.0f;
+	}
+
+	
+}
+
+void EV_FlameParticles1(vec3_t org, vec3_t vel)
+{
+	int i;
+
+	particledan_t* p = gHUD.m_ParticleDan.AllocParticle();
+
+	if (p)
+	{
+		for (i = 0; i < 3; i++)
+			p->org[i] = org[i] + gEngfuncs.pfnRandomFloat(-1.5f, 1.5f);
+		p->gravity = 0.0f;
+		p->vel = vel;
+		p->vel[2] += gEngfuncs.pfnRandomFloat(20.0f, 40.0f);
+		p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH;
+
+		// Visual.
+		p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/kp_fthrow1f.spr"));
+		p->brightness = 1.0f;
+		p->rendermode = kRenderTransAdd;
+		p->color = Vector(1.0f, 1.0f, 1.0f);
+		p->alpha = gEngfuncs.pfnRandomFloat(0.5f, 1.0f);
+		p->scale = { 2.0f, 2.0f };
+
+		// Animation.
+		p->scale_step = 2.0;
+		p->growth_max = { 144.0f, 144.0f };
+
+		p->alpha_step = 25.0f;
+		p->alpha_keyframe = { 0.0f, 0.0f, 0.0f, gEngfuncs.pfnRandomFloat(0.3f, 0.6f), 0.0f };
+
+		p->frame = gEngfuncs.pfnRandomLong(0, 1);
+		p->max_frames = 1;
+		p->framerate = 60.0f;
+		p->die = gEngfuncs.GetClientTime() + 0.15f;
+	}
+}
+
+/*
+======================================
+EV_FlameCallback
+======================================
+*/
+
+void EV_FlameCallback(struct tempent_s* ent, float frametime, float currenttime)
+{
+	vec3_t angles, org, up, right, forward, vecVelocity;
+	vec3_t offset = Vector(0, 0, 0);
+
+	//If the Player is not on our PVS, then go back
+	if (!CheckPVS(ent->clientIndex))
+		return;
+
+	cl_entity_t* player = gEngfuncs.GetEntityByIndex(ent->clientIndex);
+
+	if (!player)
+		return;
+
+	gEngfuncs.pEventAPI->EV_LocalPlayerViewheight(org);
+	VectorAdd(org, player->origin, org);
+	VectorCopy(gHUD.m_vecAngles, angles);
+
+	AngleVectors(angles, forward, right, up);
+	VectorMA(offset, -8.0f, up, offset);
+	VectorMA(offset, 8.0f, right, offset);
+	VectorMA(offset, 36.0f, forward, offset);
+	VectorAdd(org, offset, org);
+
+	VectorScale(forward, 1200.0f, vecVelocity);
+	EV_FlameParticles(org, vecVelocity);
+	EV_FlameParticles1(org, vecVelocity);
+}
+
+/*
+======================================
+EV_FireRailgun
+======================================
+*/
+
+void EV_FireRailgun(event_args_t* args)
+{
+	int modelIndex, idx = args->entindex;
+	vec3_t vecFlameOrg, vecVelocity;
+	vec3_t up, right, forward;
+	vec3_t origin, vecSrc;
+
+	char* model = "sprites/smoke.spr";
+	modelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex(model);
+
+	VectorCopy(args->origin, origin);
+	EV_GetGunPosition(args, vecSrc, origin);
+
+	if (EV_IsLocal(idx))
+	{
+		pFlameSpawner = gEngfuncs.pEfxAPI->R_TempModel(vecSrc, args->velocity, args->angles, 9999, modelIndex, TE_BOUNCE_NULL);
+
+		if (pFlameSpawner != NULL)
 		{
-			for (i = 0; i < 3; i++)
-				p->org[i] = org[i] + gEngfuncs.pfnRandomFloat(-0.25f, 0.25f);
-			p->vel = vel;
-			p->gravity = 0.0f;
-			p->flags = PDAN_ANIMATED_ALPHA | PDAN_ANIMATED_SCALE | PDAN_ANIMATE_DIE;
-			p->frame = gEngfuncs.pfnRandomLong(0, 3);
-
-			// Visual.
-			p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/kp_explosion.spr"));
-			p->brightness = gEngfuncs.pfnRandomFloat(0.0f, 1.0f);
-			p->rendermode = kRenderTransAdd;
-			p->color = Vector(1.0f, 1.0f, 1.0f);
-			p->alpha = 1.0f;
-			p->scale[0] = 8.0f;
-			p->scale[1] = 8.0f;
-
-			// Animation.
-			p->scale_step = 10.0f;
-			p->alpha_step = 5.0f;
-			p->alpha_keyframe = { 1.0f, 1.0f, 1.0f, 0.5f, 0.0f };
-			p->scale_keyframe[0] = { 48.0f, 72.0f, 72.0f, 72.0f, 72.0f };
-			p->scale_keyframe[1] = { 48.0f, 72.0f, 72.0f, 72.0f, 72.0f };
-			p->max_frames = 13;
-			p->framerate = 30.0f;
-			p->die = gEngfuncs.GetClientTime() + 1.0f;
+			pFlameSpawner->entity.origin = vecSrc;
+			pFlameSpawner->flags |= (FTENT_PLYRATTACHMENT | FTENT_PERSIST | FTENT_NOMODEL | FTENT_CLIENTCUSTOM);
+			pFlameSpawner->clientIndex = idx;
+			pFlameSpawner->callback = EV_FlameCallback;
 		}
 	}
 }
 
-void EV_FireRailgun(event_args_t* args)
+/*
+======================================
+EV_StopFlames
+======================================
+*/
+
+void EV_StopFlames(event_args_t* args)
 {
-	int idx = args->entindex;
-	vec3_t vecFlameOrg, vecVelocity;
-	vec3_t up, right, forward;
-	vec3_t origin, angles;
+	int idx;
+	vec3_t origin;
 
+	idx = args->entindex;
 	VectorCopy(args->origin, origin);
-	VectorCopy(args->angles, angles);
-	AngleVectors(angles, forward, right, up);
 
-	EV_GetGunPosition(args, vecFlameOrg, origin);
-	VectorMA(vecFlameOrg, -8.0f, up, vecFlameOrg);
-	VectorMA(vecFlameOrg, 8.0f, right, vecFlameOrg);
-	VectorMA(vecFlameOrg, 56.0f, forward, vecFlameOrg);
-
-	VectorScale(forward, 800.0f, vecVelocity);
-
-	EV_FlameParticles(vecFlameOrg, vecVelocity);
+	if (pFlameSpawner != nullptr)
+	{
+		gEngfuncs.pEfxAPI->R_KillAttachedTents(idx);
+		pFlameSpawner->die = 0.0f; //you will DIE.
+		pFlameSpawner = nullptr;
+	}
 }

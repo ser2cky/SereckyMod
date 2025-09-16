@@ -53,6 +53,27 @@ extern "C"
 void EV_TrainPitchAdjust( struct event_args_s *args );
 }
 
+//CheckPVS see if playerIndex is in same PVS as localplayer
+bool CheckPVS(int playerIndex)
+{
+	//returns true if the player is in the same PVS
+	cl_entity_t* localPlayer = gEngfuncs.GetLocalPlayer();
+	cl_entity_t* player;
+
+	player = gEngfuncs.GetEntityByIndex(playerIndex);
+
+	if (!player || !localPlayer)
+		return false;
+
+	if (player == localPlayer)
+		return true;
+
+	if (player->curstate.messagenum < localPlayer->curstate.messagenum)
+		return false;
+
+	return true;
+}
+
 // play a strike sound based on the texture that was hit by the attack traceline.  VecSrc/VecEnd are the
 // original traceline endpoints used by the attacker, iBulletType is the type of bullet that hit the texture.
 // returns volume of strike instrument (crowbar) to play

@@ -457,7 +457,7 @@ void V_Q2_CalcBobNew(struct ref_params_s* pparams)
 		nextthink = pparams->time + 0.1f;
 	}
 
-	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("OLD: %.2f %.2f %.2f\n", oldv[0], oldv[1], oldv[2]));
+ 	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("OLD: %.2f %.2f %.2f\n", oldv[0], oldv[1], oldv[2]));
 	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("new: %.2f %.2f %.2f\n", v[0], v[1], v[2]));
 
 	for (i = 0; i < 3; i++)

@@ -199,6 +199,7 @@
     <ClCompile Include="doors.cpp" />
     <ClCompile Include="effects.cpp" />
     <ClCompile Include="explode.cpp" />
+    <ClCompile Include="fire.cpp" />
     <ClCompile Include="flyingmonster.cpp" />
     <ClCompile Include="func_break.cpp" />
     <ClCompile Include="func_tank.cpp" />
@@ -264,6 +265,7 @@
     <ClCompile Include="wpn_shared\hl_wpn_crossbow.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_crowbar.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_egon.cpp" />
+    <ClCompile Include="wpn_shared\hl_wpn_flare.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_gauss.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_glock.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_handgrenade.cpp" />

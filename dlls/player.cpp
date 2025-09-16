@@ -3457,9 +3457,10 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_snark" );
 		GiveNamedItem( "weapon_hornetgun" );
 #endif
-		GiveNamedItem( "weapon_colt" );
-		GiveNamedItem( "weapon_thompson" );
-		GiveNamedItem( "weapon_railgun" );
+		GiveNamedItem( "weapon_colt" );//RTCW
+		GiveNamedItem( "weapon_thompson" );//RTCW
+		GiveNamedItem( "weapon_railgun" );//???
+		GiveNamedItem( "weapon_flaregun" );//Icebreaker
 		gEvilImpulse101 = FALSE;
 		break;
 

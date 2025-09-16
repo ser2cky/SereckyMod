@@ -328,6 +328,12 @@
     <ClCompile Include="wpn_shared\ev_hldm_railgun.cpp">
       <Filter>Source Files\wpn_shared</Filter>
     </ClCompile>
+    <ClCompile Include="wpn_shared\ev_hldm_flare.cpp">
+      <Filter>Source Files\wpn_shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dlls\wpn_shared\hl_wpn_flare.cpp">
+      <Filter>Source Files\hl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="parsemsg.h">

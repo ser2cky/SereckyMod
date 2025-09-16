@@ -56,6 +56,19 @@ public:
 };
 
 
+class CFlame : public CBaseMonster
+{
+public:
+	void	Spawn(void);
+	void	Precache(void);
+	void	EXPORT FlameThink(void);
+	static  CFlame* FlameSpawn(CBaseEntity* pOwner, CBaseEntity* pTarget);
+	void	FlameDestroy(void);
+
+	float	m_flNextDamageTime;
+};
+
+
 // constant items
 #define ITEM_HEALTHKIT		1
 #define ITEM_ANTIDOTE		2
@@ -81,6 +94,7 @@ public:
 #define WEAPON_COLT				16
 #define WEAPON_THOMPSON			17
 #define WEAPON_RAILGUN			18
+#define WEAPON_FLAREGUN			19
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -110,6 +124,7 @@ public:
 #define COLT_WEIGHT			10
 #define THOMPSON_WEIGHT		15
 #define RAILGUN_WEIGHT		20
+#define FLAREGUN_WEIGHT		5
 
 // weapon clip/carry ammo capacities
 #define URANIUM_MAX_CARRY		100
@@ -124,6 +139,7 @@ public:
 #define SNARK_MAX_CARRY			15
 #define HORNET_MAX_CARRY		8
 #define M203_GRENADE_MAX_CARRY	10
+#define FLARES_MAX_CARRY		20
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
@@ -146,6 +162,7 @@ public:
 #define COLT_MAX_CLIP			8
 #define THOMPSON_MAX_CLIP		30
 #define RAILGUN_MAX_CLIP		WEAPON_NOCLIP
+#define FLAREGUN_MAX_CLIP		1
 
 
 // the default amount of ammo that comes with each gun when it spawns
@@ -167,6 +184,7 @@ public:
 #define COLT_DEFAULT_GIVE			8
 #define THOMPSON_DEFAULT_GIVE		30
 #define RAILGUN_DEFAULT_GIVE		25
+#define FLAREGUN_DEFAULT_GIVE		5
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -1115,6 +1133,32 @@ private:
 	unsigned short m_usFireColt;
 };
 
+class CFlareGun : public CBasePlayerWeapon
+{
+public:
+	void Spawn(void);
+	void Precache(void);
+	int iItemSlot(void) { return 2; }
+	int GetItemInfo(ItemInfo* p);
+
+	BOOL Deploy(void);
+	void PrimaryAttack(void);
+	void Reload(void);
+	void WeaponIdle(void);
+
+	virtual BOOL UseDecrement(void)
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	unsigned short m_usFireFlare;
+};
+
 class CThompson : public CBasePlayerWeapon
 {
 public:
@@ -1150,9 +1194,10 @@ public:
 	int iItemSlot(void) { return 4; }
 	int GetItemInfo(ItemInfo* p);
 
-	void PrimaryAttack(void);
-	void WeaponIdle(void);
 	BOOL Deploy(void);
+	void WeaponIdle(void);
+	void PrimaryAttack(void);
+	void ItemPostFrame(void);
 
 	virtual BOOL UseDecrement(void)
 	{
@@ -1165,6 +1210,7 @@ public:
 
 private:
 	unsigned short m_usFireRailgun;
+	unsigned short m_usStopRailgun;
 };
 
 // Based off weapon.cfg from all of the

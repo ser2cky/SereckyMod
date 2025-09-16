@@ -54,6 +54,7 @@ void CQuake2Railgun::Precache(void)
 	PRECACHE_MODEL("models/p_9mmhandgun.mdl");
 
 	m_usFireRailgun = PRECACHE_EVENT(1, "events/railgun.sc");
+	m_usStopRailgun = PRECACHE_EVENT(1, "events/railgun1.sc");
 }
 
 /*
@@ -106,7 +107,28 @@ void CQuake2Railgun::PrimaryAttack(void)
 #endif
 	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usFireRailgun, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, g_vecZero.x, g_vecZero.y, 0, 0, 0, 0);
 
-	m_flNextPrimaryAttack = UTIL_WeaponTimeBase();
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.1f;
+}
+
+/*
+======================================
+ItemPostFrame
+======================================
+*/
+
+void CQuake2Railgun::ItemPostFrame(void)
+{
+	int flags;
+#if defined( CLIENT_WEAPONS )
+	flags = FEV_NOTHOST;
+#else
+	flags = 0;
+#endif
+
+	if (!(m_pPlayer->pev->button & IN_ATTACK))
+		PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usStopRailgun, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, g_vecZero.x, g_vecZero.y, 0, 0, 0, 0);
+
+	CBasePlayerWeapon::ItemPostFrame();
 }
 
 /*
