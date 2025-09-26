@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #if !defined( HUD_SERVERSH )
 #define HUD_SERVERSH
 #pragma once

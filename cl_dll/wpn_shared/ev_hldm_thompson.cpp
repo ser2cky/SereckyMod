@@ -26,12 +26,6 @@
 static int tracerCount[32];
 void V_PunchAxis(int axis, float punch);
 
-extern "C"
-{
-	// HLDM
-	void EV_FireThompson(struct event_args_s* args);
-}
-
 //======================
 //	    COLT START
 //======================

@@ -23,12 +23,6 @@
 #include "event_args.h"
 #include "../in_defs.h"
 
-extern "C"
-{
-// HLDM
-void EV_SnarkFire( struct event_args_s *args  );
-}
-
 //======================
 //	   SQUEAK START
 //======================

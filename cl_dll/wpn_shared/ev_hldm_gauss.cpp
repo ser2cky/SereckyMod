@@ -28,12 +28,6 @@
 
 void V_PunchAxis( int axis, float punch );
 
-extern "C"
-{
-// HLDM
-void EV_FireGauss( struct event_args_s *args  );
-void EV_SpinGauss( struct event_args_s *args  );
-}
 
 //======================
 //	   GAUSS START 

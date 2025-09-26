@@ -25,11 +25,6 @@
 
 void V_PunchAxis( int axis, float punch );
 
-extern "C"
-{
-// HLDM
-void EV_FireRpg( struct event_args_s *args  );
-}
 
 //======================
 //	    RPG START 

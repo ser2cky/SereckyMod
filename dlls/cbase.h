@@ -25,7 +25,7 @@ CBaseEntity
 				CBasePlayer
 				CBaseGroup
 */
-
+#pragma once
 #define		MAX_PATH_SIZE	10 // max number of nodes available for a path.
 
 // These are caps bits to indicate what an object's capabilities (currently used for save/restore and level transitions)

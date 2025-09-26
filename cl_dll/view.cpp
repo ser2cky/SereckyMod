@@ -478,7 +478,7 @@ Quake2 Camerabob.
 
 void V_Q2_CalcViewOffset(struct ref_params_s* pparams)
 {
-	float		bob, ratio, delta;
+	float		bob, delta;
 	static vec3_t oldv = { 0, 0, 0 };
 	static vec3_t v = { 0, 0, 0 };
 	static float nextthink = 0.0f;
@@ -1058,8 +1058,8 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	{
 		for (i = 0; i < 3; i++)
 		{
-			lerpPunch[i] = LerpAngle(lerpPunch[i], pparams->punchangle[i], pparams->frametime * 10.0f);
-			ev_lerpPunch[i] = LerpAngle(ev_lerpPunch[i], ev_punchangle[i], pparams->frametime * 10.0f);
+			lerpPunch[i] = Interpolate(lerpPunch[i], pparams->punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
+			ev_lerpPunch[i] = Interpolate(ev_lerpPunch[i], ev_punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
 		}
 
 		VectorAdd(pparams->viewangles, lerpPunch, pparams->viewangles);

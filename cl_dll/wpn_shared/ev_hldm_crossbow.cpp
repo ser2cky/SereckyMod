@@ -28,13 +28,6 @@
 void V_PunchAxis( int axis, float punch );
 void VectorAngles( const float *forward, float *angles );
 
-extern "C"
-{
-// HLDM
-void EV_FireCrossbow( struct event_args_s *args  );
-void EV_FireCrossbow2( struct event_args_s *args  );
-}
-
 //======================
 //	  CROSSBOW START
 //======================

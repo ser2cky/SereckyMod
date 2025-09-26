@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #ifndef VOICE_VGUI_TWEAKDLG_H
 #define VOICE_VGUI_TWEAKDLG_H
 #ifdef _WIN32

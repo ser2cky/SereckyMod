@@ -12,6 +12,9 @@
 *   without written permission from Valve LLC.
 *
 ****/
+
+#pragma once
+
 #ifndef MONSTEREVENT_H
 #define MONSTEREVENT_H
 

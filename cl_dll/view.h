@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #if !defined ( VIEWH )
 #define VIEWH 
 #pragma once

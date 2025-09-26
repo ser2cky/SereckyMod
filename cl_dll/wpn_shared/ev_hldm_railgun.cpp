@@ -28,13 +28,6 @@
 #include "com_model.h"
 #include "../particledan.h"
 
-extern "C"
-{
-	// HLDM
-	void EV_FireRailgun(struct event_args_s* args);
-	void EV_StopFlames(struct event_args_s* args);
-}
-
 TEMPENTITY* pFlameSpawner = nullptr;
 
 /*

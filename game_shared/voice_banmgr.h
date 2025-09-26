@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #ifndef VOICE_BANMGR_H
 #define VOICE_BANMGR_H
 #ifdef _WIN32

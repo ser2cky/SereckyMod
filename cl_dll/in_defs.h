@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #if !defined( IN_DEFSH )
 #define IN_DEFSH
 #pragma once

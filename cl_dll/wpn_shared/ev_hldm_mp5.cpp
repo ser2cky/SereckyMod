@@ -26,13 +26,6 @@
 static int tracerCount[ 32 ];
 void V_PunchAxis( int axis, float punch );
 
-extern "C"
-{
-// HLDM
-void EV_FireMP5( struct event_args_s *args  );
-void EV_FireMP52( struct event_args_s *args  );
-}
-
 //======================
 //	    MP5 START
 //======================

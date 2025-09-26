@@ -19,6 +19,9 @@
 //=========================================================
 // Hornet Defines
 //=========================================================
+
+#pragma once
+
 #define HORNET_TYPE_RED			0
 #define HORNET_TYPE_ORANGE		1
 #define HORNET_RED_SPEED		(float)600

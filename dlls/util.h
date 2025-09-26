@@ -15,6 +15,7 @@
 //
 // Misc utility code
 //
+#pragma once
 #ifndef ACTIVITY_H
 #include "activity.h"
 #endif

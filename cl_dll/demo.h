@@ -5,6 +5,7 @@
 // $NoKeywords: $
 //=============================================================================
 
+#pragma once
 #if !defined( DEMOH )
 #define DEMOH
 #pragma once

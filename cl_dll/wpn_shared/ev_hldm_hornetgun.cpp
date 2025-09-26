@@ -25,12 +25,6 @@
 
 void V_PunchAxis( int axis, float punch );
 
-extern "C"
-{
-// HLDM
-void EV_HornetGunFire( struct event_args_s *args  );
-}
-
 //======================
 //	   HORNET START
 //======================

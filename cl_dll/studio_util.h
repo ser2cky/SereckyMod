@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #if !defined( STUDIO_UTIL_H )
 #define STUDIO_UTIL_H
 #if defined( WIN32 )

@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #ifndef SCOREPANEL_H
 #define SCOREPANEL_H
 

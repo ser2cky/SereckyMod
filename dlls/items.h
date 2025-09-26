@@ -12,6 +12,9 @@
 *   without written permission from Valve LLC.
 *
 ****/
+
+#pragma once
+
 #ifndef ITEMS_H
 #define ITEMS_H
 

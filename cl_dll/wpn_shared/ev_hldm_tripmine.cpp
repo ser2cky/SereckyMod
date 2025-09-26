@@ -23,12 +23,6 @@
 #include "event_args.h"
 #include "../in_defs.h"
 
-extern "C"
-{
-// HLDM
-void EV_TripmineFire( struct event_args_s *args  );
-}
-
 //======================
 //	   TRIPMINE START
 //======================

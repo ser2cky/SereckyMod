@@ -12,7 +12,7 @@
 *   without written permission from Valve LLC.
 *
 ****/
-
+#pragma once
 #define _A( a ) { a, #a }
 
 activity_map_t activity_map[] =

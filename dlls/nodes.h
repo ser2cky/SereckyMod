@@ -19,6 +19,7 @@
 //=========================================================
 // DEFINE
 //=========================================================
+#pragma once
 #define MAX_STACK_NODES	    100
 #define	NO_NODE				-1
 #define MAX_NODE_HULLS		4

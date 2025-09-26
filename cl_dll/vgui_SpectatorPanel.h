@@ -8,7 +8,7 @@
 // vgui_SpectatorPanel.h: interface for the SpectatorPanel class.
 //
 //////////////////////////////////////////////////////////////////////
-
+#pragma once
 #ifndef SPECTATORPANEL_H
 #define SPECTATORPANEL_H
 

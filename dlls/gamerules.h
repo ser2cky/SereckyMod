@@ -18,6 +18,9 @@
 
 //#include "weapons.h"
 //#include "items.h"
+
+#pragma once
+
 class CBasePlayerItem;
 class CBasePlayer;
 class CItem;

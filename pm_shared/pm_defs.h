@@ -13,6 +13,7 @@
 *
 ****/
 // pm_defs.h
+#pragma once
 #if !defined( PM_DEFSH )
 #define PM_DEFSH
 #pragma once

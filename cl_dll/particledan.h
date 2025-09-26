@@ -12,10 +12,10 @@
 *   without written permission from Valve LLC.
 *
 ****/
+#pragma once
 #if !defined( PARTICLEDAN_H )
 #define PARTICLEDAN_H
 #ifdef _WIN32
-#pragma once
 #endif
 
 #include <iostream>

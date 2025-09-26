@@ -12,6 +12,7 @@
 *   without written permission from Valve LLC.
 *
 ****/
+#pragma once
 #ifndef FUNC_BREAK_H
 #define FUNC_BREAK_H
 

@@ -16,7 +16,7 @@
 // CSquadMonster - all the extra data for monsters that
 // form squads.
 //=========================================================
-
+#pragma once
 #define	SF_SQUADMONSTER_LEADER	32
 
 

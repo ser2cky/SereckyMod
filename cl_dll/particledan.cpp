@@ -218,7 +218,7 @@ Draw
 
 void CParticleDan::ParticleThink(float frametime, float realtime)
 {
-	particledan_t *p, *kill, *trail;
+	particledan_t *p, *kill;
 	vec3_t delta;
 
 	if (frametime <= 0.0f)

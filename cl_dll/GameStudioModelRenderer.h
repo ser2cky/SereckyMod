@@ -5,6 +5,7 @@
 // $NoKeywords: $
 //=============================================================================
 
+#pragma once
 #if !defined( GAMESTUDIOMODELRENDERER_H )
 #define GAMESTUDIOMODELRENDERER_H
 #if defined( _WIN32 )

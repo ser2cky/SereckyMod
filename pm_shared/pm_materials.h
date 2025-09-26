@@ -12,6 +12,7 @@
 *   without written permission from Valve LLC.
 *
 ****/
+#pragma once
 #if !defined( PM_MATERIALSH )
 #define PM_MATERIALSH
 #pragma once

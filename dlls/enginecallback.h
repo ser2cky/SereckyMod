@@ -12,6 +12,7 @@
 *   without written permission from Valve LLC.
 *
 ****/
+#pragma once
 #ifndef ENGINECALLBACK_H
 #define ENGINECALLBACK_H
 #pragma once

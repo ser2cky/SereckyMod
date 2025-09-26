@@ -30,13 +30,6 @@
 extern engine_studio_api_t IEngineStudio;
 extern cvar_t *cl_lw;
 
-extern "C"
-{
-// HLDM
-void EV_EgonFire( struct event_args_s *args  );
-void EV_EgonStop( struct event_args_s *args  );
-}
-
 //======================
 //	    EGON END 
 //======================

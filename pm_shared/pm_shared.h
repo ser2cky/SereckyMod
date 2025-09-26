@@ -16,6 +16,7 @@
 //
 // pm_shared.h
 //
+#pragma once
 #if !defined( PM_SHAREDH )
 #define PM_SHAREDH
 #pragma once

@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #ifndef CONSOLEPANEL_H
 #define CONSOLEPANEL_H
 

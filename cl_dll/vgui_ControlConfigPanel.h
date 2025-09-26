@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #ifndef CONTROLCONFIGPANEL_H
 #define CONTROLCONFIGPANEL_H
 

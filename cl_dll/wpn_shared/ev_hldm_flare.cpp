@@ -36,12 +36,6 @@ enum flaregun_e {
 	FLAREGUN_DRAW2
 };
 
-extern "C"
-{
-	// HLDM
-	void EV_FireFlare(struct event_args_s* args);
-}
-
 //======================
 //	    FLARE START
 //======================

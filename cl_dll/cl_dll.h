@@ -25,6 +25,7 @@
 //		- Drawing the HUD graphics every frame
 //		- Handling the custum HUD-update packets
 //
+#pragma once
 typedef unsigned char byte;
 typedef unsigned short word;
 typedef float vec_t;

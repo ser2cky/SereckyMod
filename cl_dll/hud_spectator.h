@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #ifndef SPECTATOR_H
 #define SPECTATOR_H
 #pragma once

@@ -13,7 +13,7 @@
 *
 ****/
 // Spectator.h
-
+#pragma once
 class CBaseSpectator : public CBaseEntity 
 {
 public:

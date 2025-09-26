@@ -48,11 +48,6 @@ void VectorAngles( const float *forward, float *angles );
 
 extern cvar_t *cl_lw;
 
-extern "C"
-{
-void EV_TrainPitchAdjust( struct event_args_s *args );
-}
-
 //CheckPVS see if playerIndex is in same PVS as localplayer
 bool CheckPVS(int playerIndex)
 {

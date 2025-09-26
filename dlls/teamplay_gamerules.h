@@ -15,7 +15,7 @@
 //
 // teamplay_gamerules.h
 //
-
+#pragma once
 #define MAX_TEAMNAME_LENGTH	16
 #define MAX_TEAMS			32
 

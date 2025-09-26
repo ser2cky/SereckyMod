@@ -4,7 +4,7 @@
 //
 // $NoKeywords: $
 //=============================================================================
-
+#pragma once
 #ifndef VOICE_STATUS_H
 #define VOICE_STATUS_H
 #pragma once
