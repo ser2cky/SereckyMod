@@ -7,8 +7,6 @@
 
 // eventscripts.h
 #pragma once
-#if !defined ( EVENTSCRIPTSH )
-#define EVENTSCRIPTSH
 
 // defaults for clientinfo messages
 #define	DEFAULT_VIEWHEIGHT	28
@@ -70,5 +68,3 @@ void EV_CreateTracer( float *start, float *end );
 struct cl_entity_s *GetEntity( int idx );
 struct cl_entity_s *GetViewEntity( void );
 void EV_MuzzleFlash( void );
-
-#endif // EVENTSCRIPTSH

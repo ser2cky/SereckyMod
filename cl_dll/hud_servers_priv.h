@@ -5,10 +5,6 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#if !defined( HUD_SERVERS_PRIVH )
-#define HUD_SERVERS_PRIVH
-#pragma once
-
 #include "netadr.h"
 
 class CHudServers
@@ -94,5 +90,3 @@ private:
 	request_t			*m_pRulesRequest;
 	request_t			*m_pPlayersRequest;
 };
-
-#endif // HUD_SERVERS_PRIVH

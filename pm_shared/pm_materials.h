@@ -13,9 +13,6 @@
 *
 ****/
 #pragma once
-#if !defined( PM_MATERIALSH )
-#define PM_MATERIALSH
-#pragma once
 
 #define CBTEXTURENAMEMAX	13			// only load first n chars of name
 
@@ -30,5 +27,3 @@
 #define CHAR_TEX_COMPUTER	'P'
 #define CHAR_TEX_GLASS		'Y'
 #define CHAR_TEX_FLESH		'F'
-
-#endif // !PM_MATERIALSH

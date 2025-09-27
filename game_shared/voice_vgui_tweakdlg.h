@@ -5,12 +5,6 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#ifndef VOICE_VGUI_TWEAKDLG_H
-#define VOICE_VGUI_TWEAKDLG_H
-#ifdef _WIN32
-#pragma once
-#endif
-
 
 class CMenuPanel;
 
@@ -20,6 +14,3 @@ bool IsTweakDlgOpen();
 
 // Returns a global instance of the tweak dialog.
 CMenuPanel* GetVoiceTweakDlg();
-
-
-#endif // VOICE_VGUI_TWEAKDLG_H

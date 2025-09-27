@@ -5,10 +5,6 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#ifndef OVERVIEW_H
-#define OVERVIEW_H
-#pragma once
-
 
 //-----------------------------------------------------------------------------
 // Purpose: Handles the drawing of the top-down map and all the things on it
@@ -26,6 +22,3 @@ private:
 	HSPRITE m_hsprPlayer;
 	HSPRITE m_hsprViewcone;
 };
-
-
-#endif // OVERVIEW_H

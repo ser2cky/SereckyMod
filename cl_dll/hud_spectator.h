@@ -5,13 +5,7 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#ifndef SPECTATOR_H
-#define SPECTATOR_H
-#pragma once
-
 #include "cl_entity.h"
-
-
 
 #define INSET_OFF				0
 #define	INSET_CHASE_FREE		1
@@ -20,8 +14,6 @@
 #define	INSET_MAP_CHASE			4
 
 #define MAX_SPEC_HUD_MESSAGES	8
-
-
 
 #define OVERVIEW_TILE_SIZE		128		// don't change this
 #define OVERVIEW_MAX_LAYERS		1
@@ -128,5 +120,3 @@ private:
 	int			m_lastPrimaryObject;
 	int			m_lastSecondaryObject;
 };
-
-#endif // SPECTATOR_H

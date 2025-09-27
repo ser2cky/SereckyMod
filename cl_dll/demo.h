@@ -6,9 +6,6 @@
 //=============================================================================
 
 #pragma once
-#if !defined( DEMOH )
-#define DEMOH
-#pragma once
 
 // Types of demo messages we can write/parse
 enum
@@ -24,5 +21,3 @@ extern int g_demosniperdamage;
 extern float g_demosniperorg[3];
 extern float g_demosniperangles[3];
 extern float g_demozoom;
-
-#endif

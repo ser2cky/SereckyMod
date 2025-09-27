@@ -6,8 +6,6 @@
 //=============================================================================
 
 #pragma once
-#if !defined ( EV_HLDMH )
-#define EV_HLDMH
 #include "pm_defs.h"
 
 // bullet types
@@ -89,6 +87,3 @@ void EV_StopFlames(event_args_s* args);
 void EV_FireFlare(event_args_s* args);
 
 void EV_TrainPitchAdjust(event_args_s* args);
-
-
-#endif // EV_HLDMH

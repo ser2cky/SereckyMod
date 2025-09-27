@@ -9,8 +9,6 @@
 //
 //////////////////////////////////////////////////////////////////////
 #pragma once
-#ifndef SPECTATORPANEL_H
-#define SPECTATORPANEL_H
 
 #include <VGUI_Panel.h>
 #include <VGUI_Label.h>
@@ -97,6 +95,3 @@ public:
 		m_pFather->ActionSignal(m_cmd);
 	}
 };
-
-
-#endif // !defined SPECTATORPANEL_H

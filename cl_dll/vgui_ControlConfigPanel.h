@@ -5,8 +5,6 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#ifndef CONTROLCONFIGPANEL_H
-#define CONTROLCONFIGPANEL_H
 
 #include<VGUI_Panel.h>
 #include<VGUI_Dar.h>
@@ -41,7 +39,3 @@ public:
 	void GetCVarBind(const char* cvar,char* bind,int bindLen,char* bindAlt,int bindAltLen);
 	void SetCVarBind(const char* cvar,const char* bind,const char* bindAlt);
 };
-
-
-
-#endif

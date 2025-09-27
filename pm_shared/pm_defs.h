@@ -14,9 +14,6 @@
 ****/
 // pm_defs.h
 #pragma once
-#if !defined( PM_DEFSH )
-#define PM_DEFSH
-#pragma once
 
 #define	MAX_PHYSENTS 600 		  // Must have room for all entities in the world.
 #define MAX_MOVEENTS 64
@@ -219,5 +216,3 @@ typedef struct playermove_s
 	int				(*PM_TestPlayerPositionEx) (float *pos, pmtrace_t *ptrace, int (*pfnIgnore)( physent_t *pe ) );
 	struct pmtrace_s *(*PM_TraceLineEx)( float *start, float *end, int flags, int usehulll, int (*pfnIgnore)( physent_t *pe ) );
 } playermove_t;
-
-#endif

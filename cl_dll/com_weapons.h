@@ -7,13 +7,6 @@
 
 // com_weapons.h
 // Shared weapons common function prototypes
-#pragma once
-#if !defined( COM_WEAPONSH )
-#define COM_WEAPONSH
-#ifdef _WIN32
-#pragma once
-#endif
-
 #include "hud_iface.h"
 
 extern "C"
@@ -45,5 +38,3 @@ extern int g_runfuncs;
 extern vec3_t v_angles;
 extern float g_lastFOV;
 extern struct local_state_s *g_finalstate;
-
-#endif

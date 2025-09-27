@@ -5,11 +5,6 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#if !defined( STUDIO_UTIL_H )
-#define STUDIO_UTIL_H
-#if defined( WIN32 )
-#pragma once
-#endif
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
@@ -36,5 +31,3 @@ void	MatrixCopy( float in[3][4], float out[3][4] );
 void	QuaternionMatrix( vec4_t quaternion, float (*matrix)[4] );
 void	QuaternionSlerp( vec4_t p, vec4_t q, float t, vec4_t qt );
 void	AngleQuaternion( float *angles, vec4_t quaternion );
-
-#endif // STUDIO_UTIL_H

@@ -5,9 +5,6 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#ifndef ServerBrowser_H
-#define ServerBrowser_H
-
 #include<VGUI_Panel.h>
 
 namespace vgui
@@ -44,7 +41,3 @@ public:
 public:
 	virtual void setSize(int wide,int tall);
 };
-
-
-
-#endif

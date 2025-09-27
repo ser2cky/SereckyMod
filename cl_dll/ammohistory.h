@@ -84,8 +84,6 @@ public:
 	int HasAmmo( WEAPON *p );
 
 ///// AMMO /////
-	AMMO GetAmmo( int iId ) { return iId; }
-
 	void SetAmmo( int iId, int iCount ) { riAmmo[ iId ] = iCount;	}
 
 	int CountAmmo( int iId );

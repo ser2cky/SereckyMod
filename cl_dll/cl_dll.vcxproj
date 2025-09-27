@@ -62,6 +62,8 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalIncludeDirectories>..\dlls;..\common;..\pm_shared;..\engine;..\utils\vgui\include;..\game_shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;_DEBUG;WIN32;_WINDOWS;CLIENT_DLL;CLIENT_WEAPONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader />
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -160,6 +162,7 @@
     <ClCompile Include="com_weapons.cpp" />
     <ClCompile Include="death.cpp" />
     <ClCompile Include="demo.cpp" />
+    <ClCompile Include="elightworld.cpp" />
     <ClCompile Include="entity.cpp" />
     <ClCompile Include="events.cpp" />
     <ClCompile Include="ev_common.cpp" />

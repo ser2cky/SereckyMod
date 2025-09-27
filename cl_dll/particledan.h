@@ -13,10 +13,6 @@
 *
 ****/
 #pragma once
-#if !defined( PARTICLEDAN_H )
-#define PARTICLEDAN_H
-#ifdef _WIN32
-#endif
 
 #include <iostream>
 #include <array>
@@ -81,5 +77,3 @@ public:
 	void ParticleThink(float frametime, float realtime);
 	void DrawParticle(particledan_t* p);
 };
-
-#endif

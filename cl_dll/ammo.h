@@ -13,14 +13,9 @@
 *
 ****/
 #pragma once
-#ifndef __AMMO_H__
-#define __AMMO_H__
 
 #define MAX_WEAPON_NAME 128
-
-
 #define WEAPON_FLAGS_SELECTONEMPTY	1
-
 #define WEAPON_IS_ONTARGET 0x40
 
 struct WEAPON
@@ -55,8 +50,3 @@ struct WEAPON
 	HSPRITE hZoomedAutoaim;
 	wrect_t rcZoomedAutoaim;
 };
-
-typedef int AMMO;
-
-
-#endif

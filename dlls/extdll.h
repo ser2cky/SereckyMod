@@ -13,9 +13,6 @@
 *
 ****/
 #pragma once
-#ifndef EXTDLL_H
-#define EXTDLL_H
-
 
 //
 // Global header file for extension DLLs
@@ -87,5 +84,3 @@ typedef float vec_t;				// needed before including progdefs.h
 
 // Shared header between the client DLL and the game DLLs
 #include "cdll_dll.h"
-
-#endif //EXTDLL_H

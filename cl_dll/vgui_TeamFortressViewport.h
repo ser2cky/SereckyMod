@@ -5,8 +5,6 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#ifndef TEAMFORTRESSVIEWPORT_H
-#define TEAMFORTRESSVIEWPORT_H
 
 #include<VGUI_Panel.h>
 #include<VGUI_Frame.h>
@@ -1711,5 +1709,3 @@ public:
 		FillRGBA(x, iYPos + 5, HealthWidth / 10, gHUD.m_iFontHeight, 255, 160, 0, a);
 	}
 };
-
-#endif

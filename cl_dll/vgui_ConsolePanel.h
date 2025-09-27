@@ -5,8 +5,6 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#ifndef CONSOLEPANEL_H
-#define CONSOLEPANEL_H
 
 #include<stdarg.h>
 #include<VGUI_Panel.h>
@@ -32,7 +30,3 @@ public:
 	virtual int  printf(const char* format,...);
 	virtual void doExecCommand();
 };
-
-
-
-#endif

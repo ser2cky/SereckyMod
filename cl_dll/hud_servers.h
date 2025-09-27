@@ -5,9 +5,6 @@
 // $NoKeywords: $
 //=============================================================================
 #pragma once
-#if !defined( HUD_SERVERSH )
-#define HUD_SERVERSH
-#pragma once
 
 #define NET_CALLBACK /* */
 
@@ -37,5 +34,3 @@ int	ServersGetCount( void );
 const char *ServersGetInfo( int server );
 int	ServersIsQuerying( void );
 void SortServers( const char *fieldname );
-
-#endif // HUD_SERVERSH
