@@ -193,6 +193,7 @@
     <ClCompile Include="parsemsg.cpp" />
     <ClCompile Include="particledan.cpp" />
     <ClCompile Include="saytext.cpp" />
+    <ClCompile Include="my_sprites.cpp" />
     <ClCompile Include="statusbar.cpp" />
     <ClCompile Include="status_icons.cpp" />
     <ClCompile Include="StudioModelRenderer.cpp" />
@@ -262,6 +263,7 @@
     <ClInclude Include="overview.h" />
     <ClInclude Include="parsemsg.h" />
     <ClInclude Include="particledan.h" />
+    <ClInclude Include="my_sprites.h" />
     <ClInclude Include="StudioModelRenderer.h" />
     <ClInclude Include="studio_util.h" />
     <ClInclude Include="util.h" />

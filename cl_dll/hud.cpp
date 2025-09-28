@@ -347,6 +347,7 @@ void CHud :: Init( void )
 	m_TextMessage.Init();
 	m_StatusIcons.Init();
 	m_ParticleDan.Init();
+	m_SpriteObject.Init();
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 
 	m_Menu.Init();
@@ -496,6 +497,7 @@ void CHud :: VidInit( void )
 	m_TextMessage.VidInit();
 	m_StatusIcons.VidInit();
 	m_ParticleDan.VidInit();
+	m_SpriteObject.VidInit();
 	GetClientVoiceMgr()->VidInit();
 }
 

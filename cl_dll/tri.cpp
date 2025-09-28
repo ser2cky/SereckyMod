@@ -17,6 +17,7 @@
 #include "cl_entity.h"
 #include "triangleapi.h"
 #include "particledan.h"
+#include "my_sprites.h"
 
 #define DLLEXPORT __declspec( dllexport )
 
@@ -27,6 +28,7 @@ extern "C"
 };
 
 CParticleDan* g_ParticleDan;
+CSpriteObject* g_SpriteObj;
 
 //#define TEST_IT
 #if defined( TEST_IT )
@@ -126,6 +128,7 @@ void DLLEXPORT HUD_DrawTransparentTriangles( void )
 	oldtime = gEngfuncs.GetClientTime();
 
 	g_ParticleDan->ParticleThink(frametime, gEngfuncs.GetClientTime());
+	g_SpriteObj->SpriteThink(frametime, gEngfuncs.GetClientTime());
 #if defined( TEST_IT )
 //	Draw_Triangles();
 #endif

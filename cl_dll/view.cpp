@@ -607,6 +607,69 @@ void V_Q2_CalcBobValues(struct ref_params_s* pparams)
 }
 
 /*
+============================
+V_DoomCalcBob
+Calc Doom1/2 Viewbob Values
+============================
+*/
+
+// A lot of the Doom viewbob code used bitshifting things
+// that I have little-to-no understanding of it, so bobbing
+// will probably be a little bit off here... also, 
+// doom & quake have different ticrates, but it's
+// whatever, this looks close enough. - serecky 9.27.25
+
+#define MAXBOB			16
+void V_DoomCalcBob(struct ref_params_s* pparams)
+{
+	float bob, swingx, swingy, playerbob, angle;
+	static	double	bobtime;
+	vec3_t vel;
+	int i;
+
+	cl_entity_t* view;
+	view = gEngfuncs.GetViewModel();
+
+	VectorCopy(pparams->simvel, vel);
+
+	playerbob = (vel[0] * vel[0]) + (vel[1] * vel[1]);
+	playerbob /= 4; // Originally a bitshift of 2 to the left...
+
+	if (playerbob > MAXBOB)
+		playerbob = MAXBOB;
+
+	bobtime += pparams->frametime;
+	angle = fmod((2*M_PI) * (bobtime), 2 * M_PI);
+	bob = (playerbob / 2) * sin(angle);
+
+	pparams->vieworg[2] += bob;
+
+	// I'm applying Doom's viewbob to 3D viewmodels
+	// as well, because the TriApi gun SpriteObject
+	// copies the viewmodel's origin and viewangles.
+	// - serecky 9.27.25
+	if (!view)
+		return;
+
+	view->origin[2] += bob;
+
+	// bob the weapon based on movement speed
+	angle = fmod((bobtime * 4), 2 * M_PI);
+	swingx = playerbob * cos(angle);
+	angle = fmod((bobtime * 4), M_PI);
+	swingy = playerbob * sin(angle);
+
+	for (i = 0; i < 3; i++)
+	{
+		view->origin[i] += pparams->right[i] * swingx * 0.1f;
+		view->origin[i] -= pparams->up[i] * swingy * 0.1f;
+	}
+
+	VectorCopy(view->origin, view->curstate.origin);
+	VectorCopy(view->angles, view->curstate.angles);
+}
+
+/*
 ===============
 V_CalcRoll
 Used by view and sv_user
@@ -1041,10 +1104,12 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 // Q2/Q3 View-bob and Gun-bob start.
 
 	// calc values. moved for cleanliness
-	if (cl_bob_style->value)
+	if (cl_bob_style->value == 0)
 		V_Q2_CalcBobValues(pparams);
-	else
+	else if (cl_bob_style->value == 1)
 		V_Q3_CalcBobValues(pparams);
+	else
+		V_DoomCalcBob(pparams);
 
 
 // Q2/Q3 View-bob and Gun-bob end.
