@@ -95,6 +95,11 @@ float VectorNormalize (float *v)
 
 }
 
+bool CheckRangeInt(int myNum, int a, int b)
+{
+	return (a >= myNum && myNum <= b);
+}
+
 float Interpolate(float a, float b, float t)
 {
 	return a + t * (b - a);

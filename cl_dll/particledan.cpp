@@ -58,7 +58,6 @@ float Lerp(float a2, float a1, float frac)
 	return a2 + frac * (a1 - a2);
 }
 
-
 /*
 ======================================
 InitParticles

@@ -16,7 +16,6 @@
 
 #include <iostream>
 #include <array>
-#include <vector>
 
 #define PDAN_ABSOLUTE_MIN_PARTICLES 512
 #define PDAN_MAX_PARTICLES 32768

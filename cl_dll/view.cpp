@@ -26,6 +26,7 @@
 #include "shake.h"
 #include "hltv.h"
 #include "kbutton.h"
+#include "my_sprites.h"
 
 // Spectator Mode
 extern "C" 
@@ -622,7 +623,7 @@ Calc Doom1/2 Viewbob Values
 #define MAXBOB			16
 void V_DoomCalcBob(struct ref_params_s* pparams)
 {
-	float bob, swingx, swingy, playerbob, angle;
+	static float bob, swingx, swingy, playerbob, angle;
 	static	double	bobtime;
 	vec3_t vel;
 	int i;
@@ -630,28 +631,40 @@ void V_DoomCalcBob(struct ref_params_s* pparams)
 	cl_entity_t* view;
 	view = gEngfuncs.GetViewModel();
 
-	VectorCopy(pparams->simvel, vel);
+	bobtime += pparams->frametime;
 
-	playerbob = (vel[0] * vel[0]) + (vel[1] * vel[1]);
-	playerbob /= 4; // Originally a bitshift of 2 to the left...
+	VectorCopy(pparams->simvel, vel);
+	playerbob = sqrt((vel[0] * vel[0]) + (vel[1] * vel[1]));
+	playerbob /= 48; // Originally a bitshift of 2 to the left...
 
 	if (playerbob > MAXBOB)
 		playerbob = MAXBOB;
 
-	bobtime += pparams->frametime;
-	angle = fmod((2*M_PI) * (bobtime), 2 * M_PI);
-	bob = (playerbob / 2) * sin(angle);
-
+	if (!pparams->onground)
+	{
+		view_ofs = Interpolate(view_ofs, vel[2] / 48.0f, pparams->frametime * 4.0f);
+	}
+	else
+	{
+		view_ofs = Interpolate(view_ofs, 0.0f, pparams->frametime * 4.0f);
+		angle = fmod((2 * M_PI) * (bobtime), 2 * M_PI);
+		bob = (playerbob / 2) * sin(angle);
+	}
 	pparams->vieworg[2] += bob;
 
 	// I'm applying Doom's viewbob to 3D viewmodels
 	// as well, because the TriApi gun SpriteObject
 	// copies the viewmodel's origin and viewangles.
 	// - serecky 9.27.25
+
 	if (!view)
 		return;
 
 	view->origin[2] += bob;
+	// Little check to pause bobbing if we're firing a gun!!
+	// - serecky 10/2/25
+	if (gun && gun->mode == SPR_GUN_FIRING)
+		return;
 
 	// bob the weapon based on movement speed
 	angle = fmod((bobtime * 4), 2 * M_PI);
@@ -659,14 +672,12 @@ void V_DoomCalcBob(struct ref_params_s* pparams)
 	angle = fmod((bobtime * 4), M_PI);
 	swingy = playerbob * sin(angle);
 
+	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("%.2f\n", playerbob));
 	for (i = 0; i < 3; i++)
 	{
-		view->origin[i] += pparams->right[i] * swingx * 0.1f;
-		view->origin[i] -= pparams->up[i] * swingy * 0.1f;
+		view->origin[i] += pparams->right[i] * swingx * 0.075f;
+		view->origin[i] -= pparams->up[i] * swingy * 0.075f;
 	}
-
-	VectorCopy(view->origin, view->curstate.origin);
-	VectorCopy(view->angles, view->curstate.angles);
 }
 
 /*

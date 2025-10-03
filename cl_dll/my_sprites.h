@@ -12,24 +12,88 @@
 *   without written permission from Valve LLC.
 *
 ****/
-#pragma once
 
-// Struct for Doom-styled sprite tables!
+#pragma once
+#include <iostream>
+#include <vector>
+#include <array>
+
+extern float DoomTic(float tic);
+
+//============================================
+//	my_sprites.h
+//	for handling of doom styled sprites.
+//============================================
+
+#define SPR_GUN_IDLE		0		// Gun is doing nothing.
+#define SPR_GUN_RAISING		1		// Gun is being brought up.
+#define SPR_GUN_LOWERING	2		// Gun is being switched out.
+#define SPR_GUN_FIRING		3		// Gun is firing.
+#define MAX_SPRITE_OBJS		4096	// Absolute max. amt of sprites.
+
+//============================================
+//	basic state struct.
+//============================================
 
 typedef struct state_s
 {
-	HSPRITE				sprite;
-	int					frame;
-	float				tics;
-	void				(*action);
-	int					nextstate;
+	HSPRITE				sprite;				// Current sprite for this state.
+	int					frame;				// Current sprite frame for this state.
+	float				tics;				// Length that this tic lasts for.
+	void				(*action)(void);	// Action function that's being called at this moment.
+	int					nextstate;			// Next state to jump to.
+	float				x;					// offset for X
+	float				y;					// offset for Y
 } state_t;
+
+//============================================
+//	basic sprite struct
+//============================================
+
+#define	SPR_DIE_NOW				0x00000001 // Flag to kill sprite.
+
+typedef enum {
+	spr_obj_world,		// Like monster sprites
+	spr_obj_weapon		// Like weapon view-sprites
+} spr_type_t;
+
+typedef struct spr_object_s
+{
+	state_t				*active_sprite;		// Pointer to active sprite table!!
+	struct				spr_object_s* next;	// dont touch
+	float				nextthink;			// Thinker for weapon sprites.
+	int					frame;				// Current sprite frame.
+	int					flags;				// Sets flags for sprite so they can DIE.
+	spr_type_t			type;				// Sets sprite type.
+	vec3_t				org;				// Current origin
+	vec3_t				color;				// Sets current color of sprite.
+	float				brightness;			// Sets current brightness of sprite.
+
+	// Weapon only fields!
+	int					mode;				// Current gun mode. Can be Raising, Firing, Lowering, and Idling.
+	std::array<int, 2>	raise_frame;		// Lets you define range of "raising" frames.
+	std::array<int, 2>	lower_frame;		// Lets you define range of "lowering" frames.
+	std::array<int, 2>	idle_frame;			// Lets you define range of "idle" frames.
+	std::array<int, 2>	fire_frame;			// Lets you define range of "firing" frames.
+	std::array<int, 2>	flash_frame;		// Lets you define range of gun flash frames.
+} spr_object_t;
+
+extern spr_object_t* gun;
+extern spr_object_t* flash;
+
+//============================================
+//	sprite object class def.
+//============================================
 
 class CSpriteObject
 {
 public:
-	void Init(void);
-	void VidInit(void);
+	int Init(void);
+	int VidInit(void);
+	void Shutdown(void);
+	void InitSprites(void);
+	void ClearSprites(void);
+	spr_object_t* R_AllocSpriteObject( void );
 	void SpriteThink(float frametime, float time);
-	void DrawSprite(float frame, HSPRITE model, vec3_t origin);
+	void DrawSprite(spr_object_t* spr, vec3_t origin);
 };

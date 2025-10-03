@@ -78,6 +78,9 @@ inline struct cvar_s *CVAR_CREATE( const char *cv, const char *val, const int fl
 // use this to project world coordinates to screen coordinates
 #define XPROJECT(x)	( (1.0f+(x))*ScreenWidth*0.5f )
 #define YPROJECT(y) ( (1.0f-(y))*ScreenHeight*0.5f )
+// Here x should belong to [-ScreenResPx/2...+ScreenResPx/2]
+#define XUNPROJECT(x) (2.0f * (x / ScreenWidth) - 1.0f)
+#define YUNPROJECT(y) (1.0f - 2.0f * (y / ScreenHeight))
 
 #define GetScreenInfo (*gEngfuncs.pfnGetScreenInfo)
 #define ServerCmd (*gEngfuncs.pfnServerCmd)
@@ -181,6 +184,7 @@ void VectorScale (const float *in, float scale, float *out);
 float VectorNormalize (float *v);
 void VectorInverse ( float *v );
 float Interpolate(float a, float b, float t);
+bool CheckRangeInt(int myNum, int a, int b);
 
 extern vec3_t vec3_origin;
 

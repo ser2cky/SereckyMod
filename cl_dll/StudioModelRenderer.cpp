@@ -28,6 +28,7 @@
 
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
+#include "my_sprites.h"
 
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
@@ -1168,6 +1169,14 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 		// model and frame independant
 		IEngineStudio.StudioSetupLighting (&lighting);
+		
+		if (gun) // Get colors for weapon sprites!
+		{
+			gun->color[0] = lighting.color[0];
+			gun->color[1] = lighting.color[1];
+			gun->color[2] = lighting.color[2];
+			gun->brightness = min((lighting.ambientlight + lighting.shadelight) * 1.2f, 255.0f) / 256.0f;
+		}
 
 		// get remap colors
 		m_nTopColor = m_pCurrentEntity->curstate.colormap & 0xFF;

@@ -27,6 +27,7 @@
 
 #include "com_model.h"
 #include "../particledan.h"
+#include "../my_sprites.h"
 
 TEMPENTITY* pFlameSpawner = nullptr;
 
@@ -151,6 +152,93 @@ EV_FireRailgun
 ======================================
 */
 
+void A_FireShotgun(void)
+{
+	PlaySound("weapons/DSSHOTGN.wav", 1);
+}
+
+void A_WeaponReady(void)
+{
+	return;
+}
+
+void A_Lower(void)
+{
+	return;
+}
+
+void A_Raise(void)
+{
+	return;
+}
+
+void A_ReFire(void)
+{
+	return;
+}
+
+void A_Light1(void)
+{
+	return;
+}
+
+void A_Light2(void)
+{
+	return;
+}
+
+void CreateShotgunSprite(void)
+{
+	HSPRITE SPR_SHTG = SPR_Load("sprites/doom/SPR_SHTG.spr");
+	static state_t test[] =
+	{
+		//==========================
+		// idle (0,0)
+		//==========================
+		{ SPR_SHTG,0,DoomTic(1.0f),{A_WeaponReady},0,-0.5f, -0.325f},// S_SGUN
+		//==========================
+		// down (1,1)
+		//==========================
+		{ SPR_SHTG,0,DoomTic(1.0f),{A_Lower},1,-0.5f, -0.325f},	// S_SGUNDOWN
+		//==========================
+		// up (2,2)
+		//==========================
+		{ SPR_SHTG,0,DoomTic(1.0f),{A_Raise},2,-0.5f, -0.325f},	// S_SGUNUP
+		//==========================
+		// attack (3, 11)
+		//==========================
+		{ SPR_SHTG,0,DoomTic(3.0f),{NULL},4,-0.5f, -0.325f},			// S_SGUN1
+		{ SPR_SHTG,0,DoomTic(7.0f),{A_FireShotgun},5,-0.5f, -0.325f},	// S_SGUN2
+		{ SPR_SHTG,1,DoomTic(5.0f),{NULL},6,-0.5f, -0.325f},			// S_SGUN3
+		{ SPR_SHTG,2,DoomTic(5.0f),{NULL},7,-0.5f, -0.325f},			// S_SGUN4
+		{ SPR_SHTG,3,DoomTic(4.0f),{NULL},8,-0.5f, -0.325f},			// S_SGUN5
+		{ SPR_SHTG,2,DoomTic(5.0f),{NULL},9,-0.5f, -0.325f},			// S_SGUN6
+		{ SPR_SHTG,1,DoomTic(5.0f),{NULL},10,-0.5f, -0.325f},			// S_SGUN7
+		{ SPR_SHTG,0,DoomTic(3.0f),{NULL},11,-0.5f, -0.325f},			// S_SGUN8
+		{ SPR_SHTG,0,DoomTic(4.0f),{A_ReFire},0,-0.5f, -0.325f},		// S_SGUN9
+		//==========================
+		// flash (12, 13)
+		//==========================
+		{ SPR_SHTG,4,DoomTic(4.0f),{A_Light1},13,-0.5f, -0.325f},	// S_SGUNFLASH1
+		{ SPR_SHTG,5,DoomTic(3.0f),{A_Light2},13,-0.5f, -0.325f}	// S_SGUNFLASH2
+	};
+
+	if (gun)
+	{
+		gun->active_sprite = test;
+		gun->type = spr_obj_weapon;
+
+		//gun->frame = 0;
+		gun->idle_frame = { 0, 0 };
+		gun->lower_frame = { 1, 1 };
+		gun->raise_frame = { 2, 2 };
+		gun->fire_frame = { 3, 11 };
+		gun->flash_frame = { 12, 13 };
+	}
+	else
+		gun = gHUD.m_SpriteObject.R_AllocSpriteObject();
+}
+
 void EV_FireRailgun(event_args_t* args)
 {
 	int modelIndex, idx = args->entindex;
@@ -166,15 +254,16 @@ void EV_FireRailgun(event_args_t* args)
 
 	if (EV_IsLocal(idx))
 	{
-		pFlameSpawner = gEngfuncs.pEfxAPI->R_TempModel(vecSrc, args->velocity, args->angles, 9999, modelIndex, TE_BOUNCE_NULL);
+		CreateShotgunSprite();
+		//pFlameSpawner = gEngfuncs.pEfxAPI->R_TempModel(vecSrc, args->velocity, args->angles, 9999, modelIndex, TE_BOUNCE_NULL);
 
-		if (pFlameSpawner != NULL)
-		{
-			pFlameSpawner->entity.origin = vecSrc;
-			pFlameSpawner->flags |= (FTENT_PLYRATTACHMENT | FTENT_PERSIST | FTENT_NOMODEL | FTENT_CLIENTCUSTOM);
-			pFlameSpawner->clientIndex = idx;
-			pFlameSpawner->callback = EV_FlameCallback;
-		}
+		//if (pFlameSpawner != NULL)
+		//{
+		//	pFlameSpawner->entity.origin = vecSrc;
+		//	pFlameSpawner->flags |= (FTENT_PLYRATTACHMENT | FTENT_PERSIST | FTENT_NOMODEL | FTENT_CLIENTCUSTOM);
+		//	pFlameSpawner->clientIndex = idx;
+		//	pFlameSpawner->callback = EV_FlameCallback;
+		//}
 	}
 }
 
