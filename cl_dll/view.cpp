@@ -675,8 +675,8 @@ void V_DoomCalcBob(struct ref_params_s* pparams)
 	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("%.2f\n", playerbob));
 	for (i = 0; i < 3; i++)
 	{
-		view->origin[i] += pparams->right[i] * swingx * 0.075f;
-		view->origin[i] -= pparams->up[i] * swingy * 0.075f;
+		view->origin[i] += pparams->right[i] * swingx * 0.1f;
+		view->origin[i] -= pparams->up[i] * swingy * 0.1f;
 	}
 }
 

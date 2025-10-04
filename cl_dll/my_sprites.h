@@ -29,18 +29,22 @@ extern float DoomTic(float tic);
 #define SPR_GUN_RAISING		1		// Gun is being brought up.
 #define SPR_GUN_LOWERING	2		// Gun is being switched out.
 #define SPR_GUN_FIRING		3		// Gun is firing.
+
 #define MAX_SPRITE_OBJS		4096	// Absolute max. amt of sprites.
 
 //============================================
 //	basic state struct.
 //============================================
 
+struct spr_object_s;
+typedef struct spr_object_s spr_object_t;
+
 typedef struct state_s
 {
 	HSPRITE				sprite;				// Current sprite for this state.
 	int					frame;				// Current sprite frame for this state.
 	float				tics;				// Length that this tic lasts for.
-	void				(*action)(void);	// Action function that's being called at this moment.
+	void				(*action)(spr_object_t* spr, float frametime, float time);	// Action function that's being called at this moment.
 	int					nextstate;			// Next state to jump to.
 	float				x;					// offset for X
 	float				y;					// offset for Y
@@ -51,23 +55,35 @@ typedef struct state_s
 //============================================
 
 #define	SPR_DIE_NOW				0x00000001 // Flag to kill sprite.
+#define	SPR_OVERRIDE_LIGHT		0x00000002 // Flag to override sprite lighting.
 
 typedef enum {
 	spr_obj_world,		// Like monster sprites
-	spr_obj_weapon		// Like weapon view-sprites
+	spr_obj_weapon,		// Like weapon view-sprites
 } spr_type_t;
 
 typedef struct spr_object_s
 {
-	state_t				*active_sprite;		// Pointer to active sprite table!!
 	struct				spr_object_s* next;	// dont touch
+
+	state_t				*active_sprite;		// Pointer to active sprite table!!
 	float				nextthink;			// Thinker for weapon sprites.
 	int					frame;				// Current sprite frame.
+	float				brightness;			// Sets current brightness of sprite.
 	int					flags;				// Sets flags for sprite so they can DIE.
+	vec3_t				color;				// Sets current color of sprite.
+
+	state_t				*active_overlay;	// Pointer to active sprite table (overlay)!!
+	float				nextthink2;			// Thinker for weapon sprites (overlay).
+	int					frame2;				// Current sprite frame (overlay).
+	float				brightness2;		// Sets current brightness of sprite (overlay).
+	int					flags2;				// Sets flags for sprite so they can DIE (overlay).
+	vec3_t				color2;				// Sets current color of sprite (overlay).
+
 	spr_type_t			type;				// Sets sprite type.
 	vec3_t				org;				// Current origin
-	vec3_t				color;				// Sets current color of sprite.
-	float				brightness;			// Sets current brightness of sprite.
+	std::array<float, 2> ofs;				// overall offset.
+	std::array<float, 2> old_ofs;			// OLD offset.
 
 	// Weapon only fields!
 	int					mode;				// Current gun mode. Can be Raising, Firing, Lowering, and Idling.
@@ -79,7 +95,6 @@ typedef struct spr_object_s
 } spr_object_t;
 
 extern spr_object_t* gun;
-extern spr_object_t* flash;
 
 //============================================
 //	sprite object class def.
@@ -95,5 +110,5 @@ public:
 	void ClearSprites(void);
 	spr_object_t* R_AllocSpriteObject( void );
 	void SpriteThink(float frametime, float time);
-	void DrawSprite(spr_object_t* spr, vec3_t origin);
+	void DrawSprite(spr_object_t* spr);
 };

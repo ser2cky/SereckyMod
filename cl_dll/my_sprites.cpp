@@ -140,16 +140,26 @@ spr_object_t* CSpriteObject::R_AllocSpriteObject(void)
 	active_sprites = spr;
 
 	VectorClear(spr->org);
-	VectorClear(spr->color);
 
+	VectorClear(spr->color);
 	spr->active_sprite = nullptr;
+	spr->frame = 0;
 	spr->nextthink = 0.0f;
 	spr->brightness = 0.0f;
-	spr->frame = 0;
 	spr->flags = 0;
+
+	VectorClear(spr->color2);
+	spr->active_overlay = nullptr;
+	spr->frame2 = 0;
+	spr->nextthink2 = 0.0f;
+	spr->brightness2 = 0.0f;
+	spr->flags2 = 0;
+
 	spr->type = spr_obj_world;
 
 	spr->mode = 0;
+	spr->old_ofs = { 0.0f, 0.0f };
+	spr->ofs = { 0.0f, 0.0f };
 	spr->fire_frame = { 0, 0 };
 	spr->raise_frame = { 0, 0 };
 	spr->lower_frame = { 0, 0 };
@@ -203,23 +213,68 @@ void CSpriteObject::SpriteThink(float frametime, float time)
 			break;
 		}
 
-		if (spr->type == spr_obj_weapon)
+		if (spr->type >= spr_obj_weapon)
 		{
-			if ((gHUD.m_iKeyBits & IN_ATTACK) && (spr->mode != SPR_GUN_FIRING))
+			if (view)
+				spr->org = view->origin;
+
+			if ((gHUD.m_iKeyBits & IN_USE) && (spr->mode == SPR_GUN_IDLE))
 			{
-				gEngfuncs.Con_Printf("test!\n");
+				spr->frame = spr->lower_frame[0];
+				spr->nextthink = time + spr->active_sprite[spr->lower_frame[0]].tics;
+
+				spr->mode = SPR_GUN_LOWERING;
+				DrawSprite(spr);
+				return;
+			}
+
+			if ((gHUD.m_iKeyBits & IN_ATTACK2) && (spr->mode == SPR_GUN_IDLE))
+			{
+				spr->frame = spr->raise_frame[0];
+				spr->nextthink = time + spr->active_sprite[spr->raise_frame[0]].tics;
+
+				spr->mode = SPR_GUN_RAISING;
+				DrawSprite(spr);
+				return;
+			}
+
+			if (spr->mode == SPR_GUN_LOWERING || spr->mode == SPR_GUN_RAISING)
+			{
+				spr->old_ofs[0] = Interpolate(spr->old_ofs[0], spr->ofs[0], frametime * 12.0f);
+				spr->old_ofs[1] = Interpolate(spr->old_ofs[1], spr->ofs[1], frametime * 12.0f);
+			}
+
+			if ((gHUD.m_iKeyBits & IN_ATTACK) && (spr->mode == SPR_GUN_IDLE))
+			{
+				// Set Muzzle-Flash frame.
+				spr->frame2 = spr->flash_frame[0];
+				spr->nextthink2 = time + spr->active_overlay[spr->flash_frame[0]].tics;
+
+				// Set actual gun frame.
 				spr->frame = spr->fire_frame[0];
+				spr->nextthink = time + spr->active_sprite[spr->fire_frame[0]].tics;
+
 				spr->mode = SPR_GUN_FIRING;
+
+				DrawSprite(spr);
+				return;
 			}
 
 			if ((time >= spr->nextthink) || (spr->nextthink - time) > spr->active_sprite[spr->frame].tics)
 			{
 				if (spr->active_sprite[spr->active_sprite[spr->frame].nextstate].action != nullptr)
-					spr->active_sprite[spr->active_sprite[spr->frame].nextstate].action();
-				if (spr->frame == spr->flash_frame[1])
-					spr->flags = SPR_DIE_NOW;
+					spr->active_sprite[spr->active_sprite[spr->frame].nextstate].action(spr, frametime, time);
 				spr->frame = spr->active_sprite[spr->frame].nextstate;
 				spr->nextthink = time + spr->active_sprite[spr->frame].tics;
+			}
+
+			// Thinker for evil overlays.
+			if ((time >= spr->nextthink2) || (spr->nextthink2 - time) > spr->active_overlay[spr->frame2].tics)
+			{
+				if (spr->active_overlay[spr->active_overlay[spr->frame2].nextstate].action != nullptr)
+					spr->active_overlay[spr->active_overlay[spr->frame2].nextstate].action(spr, frametime, time);
+				spr->frame2 = spr->active_overlay[spr->frame2].nextstate;
+				spr->nextthink2 = time + spr->active_overlay[spr->frame2].tics;
 			}
 
 			// Pretty iffy...
@@ -232,30 +287,10 @@ void CSpriteObject::SpriteThink(float frametime, float time)
 			if (CheckRangeInt(spr->frame, spr->idle_frame[0], spr->idle_frame[1]) == TRUE)
 				spr->mode = SPR_GUN_IDLE;
 
-			// Only firing gets it's own "if" statement!!!
-			// - serecky 10.2.25
-			if (spr->mode == SPR_GUN_FIRING)
-			{
-				// Create Muzzle-Flash sprite.
-				if (spr->flash_frame[0] != -1)
-				{
-					//if (!flash)
-					//	flash = R_AllocSpriteObject();
-					//else
-					//{
-					//	flash->type = spr_obj_weapon;
-					//	flash->frame = spr->flash_frame[0];
-					//}
-				}
-			}
-
-			if (view)
-				spr->org = view->origin;
-
 			gEngfuncs.pfnConsolePrint(UTIL_VarArgs("\n\n\nCur. Frame: %d, Tics: %.2f, Next Frame: %d", 
 				spr->active_sprite[spr->frame].frame, spr->active_sprite[spr->frame].tics, spr->active_sprite[spr->frame].nextstate));
 
-			DrawSprite(spr, spr->org);
+			DrawSprite(spr);
 		}
 	}
 }
@@ -264,59 +299,122 @@ void CSpriteObject::SpriteThink(float frametime, float time)
 //	CSpriteObject::Init
 //============================================
 
-void CSpriteObject::DrawSprite(spr_object_t* spr, vec3_t origin)
+void CSpriteObject::DrawSprite(spr_object_t* spr)
 {
+	vec3_t angles, forward, right, up, screen, overlay_org;
+	float sprite_scale = 0.025f;
+	float scale[2];
+
+	angles = v_angles;
+
+	VectorCopy(spr->org, overlay_org);
+
 	if (!spr)
 		return;
 
-	vec3_t angles, forward, right, up, screen;
-	float scale[2] = 
-	{ 
-		SPR_Width(spr->active_sprite[spr->frame].sprite, spr->active_sprite[spr->frame].frame),
-		SPR_Height(spr->active_sprite[spr->frame].sprite, spr->active_sprite[spr->frame].frame) * 1.2f
-	};
-	float sprite_scale = 0.025f;
+	//=========================================================
+	// Active sprite (the actual gun sprite...)
+	//=========================================================
 
-	angles = v_angles;
-	AngleVectors(angles, forward, right, up);
+	if (spr->active_sprite != nullptr)
+	{
+		AngleVectors(angles, forward, right, up);
 
-	VectorMA(origin, 8.0f, forward, origin);
-	VectorScale(right, scale[0] * sprite_scale, right);
-	VectorScale(up, scale[1] * sprite_scale, up);
+		scale[0] = SPR_Width(spr->active_sprite[spr->frame].sprite, spr->active_sprite[spr->frame].frame);
+		scale[1] = SPR_Height(spr->active_sprite[spr->frame].sprite, spr->active_sprite[spr->frame].frame) * 1.2f;
 
-	VectorMA(origin, spr->active_sprite[spr->frame].x, right, origin);
-	VectorMA(origin, spr->active_sprite[spr->frame].y, up, origin);
+		VectorMA(spr->org, 8.0f, forward, spr->org);
+		VectorScale(right, scale[0] * sprite_scale, right);
+		VectorScale(up, scale[1] * sprite_scale, up);
 
-	// START RENDERING!!!
-	gEngfuncs.pTriAPI->RenderMode(kRenderTransTexture);
-	gEngfuncs.pTriAPI->Color4f(spr->color[0], spr->color[1], spr->color[2], 1.0f);
-	gEngfuncs.pTriAPI->Brightness(spr->brightness);
+		VectorMA(spr->org, spr->active_sprite[spr->frame].x + spr->old_ofs[0], right, spr->org);
+		VectorMA(spr->org, spr->active_sprite[spr->frame].y + spr->old_ofs[1], up, spr->org);
 
-	if (!gEngfuncs.GetSpritePointer(spr->active_sprite[spr->frame].sprite))
-		return;
+		// START RENDERING!!!
+		gEngfuncs.pTriAPI->RenderMode(kRenderTransTexture);
+		gEngfuncs.pTriAPI->Color4f(spr->color[0], spr->color[1], spr->color[2], 1.0f);
+		gEngfuncs.pTriAPI->Brightness(spr->brightness);
 
-	gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(
-		spr->active_sprite[spr->frame].sprite), spr->active_sprite[spr->frame].frame);
+		if (!gEngfuncs.GetSpritePointer(spr->active_sprite[spr->frame].sprite))
+			return;
 
-	gEngfuncs.pTriAPI->CullFace(TRI_NONE);
-	gEngfuncs.pTriAPI->Begin(TRI_QUADS); //start our quad
+		gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(
+			spr->active_sprite[spr->frame].sprite), spr->active_sprite[spr->frame].frame);
 
-	//top left
-	gEngfuncs.pTriAPI->TexCoord2f(0, 0);
-	gEngfuncs.pTriAPI->Vertex3f(origin[0] - right[0] + up[0], origin[1] - right[1] + up[1], origin[2] - right[2] + up[2]);
+		gEngfuncs.pTriAPI->CullFace(TRI_NONE);
+		gEngfuncs.pTriAPI->Begin(TRI_QUADS); //start our quad
 
-	//bottom left
-	gEngfuncs.pTriAPI->TexCoord2f(0, 1);
-	gEngfuncs.pTriAPI->Vertex3f(origin[0] - right[0] - up[0], origin[1] - right[1] - up[1], origin[2] - right[2] - up[2]);
+		//top left
+		gEngfuncs.pTriAPI->TexCoord2f(0, 0);
+		gEngfuncs.pTriAPI->Vertex3f(spr->org[0] - right[0] + up[0], spr->org[1] - right[1] + up[1], spr->org[2] - right[2] + up[2]);
 
-	//bottom right
-	gEngfuncs.pTriAPI->TexCoord2f(1, 1);
-	gEngfuncs.pTriAPI->Vertex3f(origin[0] + right[0] - up[0], origin[1] + right[1] - up[1], origin[2] + right[2] - up[2]);
+		//bottom left
+		gEngfuncs.pTriAPI->TexCoord2f(0, 1);
+		gEngfuncs.pTriAPI->Vertex3f(spr->org[0] - right[0] - up[0], spr->org[1] - right[1] - up[1], spr->org[2] - right[2] - up[2]);
 
-	//top right
-	gEngfuncs.pTriAPI->TexCoord2f(1, 0);
-	gEngfuncs.pTriAPI->Vertex3f(origin[0] + right[0] + up[0], origin[1] + right[1] + up[1], origin[2] + right[2] + up[2]);
+		//bottom right
+		gEngfuncs.pTriAPI->TexCoord2f(1, 1);
+		gEngfuncs.pTriAPI->Vertex3f(spr->org[0] + right[0] - up[0], spr->org[1] + right[1] - up[1], spr->org[2] + right[2] - up[2]);
 
-	gEngfuncs.pTriAPI->End(); //end our list of vertexes
-	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
+		//top right
+		gEngfuncs.pTriAPI->TexCoord2f(1, 0);
+		gEngfuncs.pTriAPI->Vertex3f(spr->org[0] + right[0] + up[0], spr->org[1] + right[1] + up[1], spr->org[2] + right[2] + up[2]);
+
+		gEngfuncs.pTriAPI->End(); //end our list of vertexes
+		gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
+	}
+	else
+		return; // don't draw overlay if we don't have active sprite!!!
+
+	//=========================================================
+	// Overlay (muzzleflashes etc etc.)
+	//=========================================================
+
+	if (spr->active_overlay != nullptr)
+	{
+		AngleVectors(angles, forward, right, up);
+
+		scale[0] = SPR_Width(spr->active_overlay[spr->frame2].sprite, spr->active_overlay[spr->frame2].frame);
+		scale[1] = SPR_Height(spr->active_overlay[spr->frame2].sprite, spr->active_overlay[spr->frame2].frame) * 1.2f;
+
+		VectorMA(overlay_org, 7.995f, forward, overlay_org);
+		VectorScale(right, scale[0] * sprite_scale, right);
+		VectorScale(up, scale[1] * sprite_scale, up);
+
+		VectorMA(overlay_org, spr->active_overlay[spr->frame2].x + spr->old_ofs[0], right, overlay_org);
+		VectorMA(overlay_org, spr->active_overlay[spr->frame2].y + spr->old_ofs[1], up, overlay_org);
+
+		// START RENDERING!!!
+		gEngfuncs.pTriAPI->RenderMode(kRenderTransTexture);
+		gEngfuncs.pTriAPI->Color4f(spr->color2[0], spr->color2[1], spr->color2[2], 1.0f);
+		gEngfuncs.pTriAPI->Brightness(spr->brightness2);
+
+		if (!gEngfuncs.GetSpritePointer(spr->active_overlay[spr->frame2].sprite))
+			return;
+
+		gEngfuncs.pTriAPI->SpriteTexture((struct model_s*)gEngfuncs.GetSpritePointer(
+			spr->active_overlay[spr->frame2].sprite), spr->active_overlay[spr->frame2].frame);
+
+		gEngfuncs.pTriAPI->CullFace(TRI_NONE);
+		gEngfuncs.pTriAPI->Begin(TRI_QUADS); //start our quad
+
+		//top left
+		gEngfuncs.pTriAPI->TexCoord2f(0, 0);
+		gEngfuncs.pTriAPI->Vertex3f(overlay_org[0] - right[0] + up[0], overlay_org[1] - right[1] + up[1], overlay_org[2] - right[2] + up[2]);
+
+		//bottom left
+		gEngfuncs.pTriAPI->TexCoord2f(0, 1);
+		gEngfuncs.pTriAPI->Vertex3f(overlay_org[0] - right[0] - up[0], overlay_org[1] - right[1] - up[1], overlay_org[2] - right[2] - up[2]);
+
+		//bottom right
+		gEngfuncs.pTriAPI->TexCoord2f(1, 1);
+		gEngfuncs.pTriAPI->Vertex3f(overlay_org[0] + right[0] - up[0], overlay_org[1] + right[1] - up[1], overlay_org[2] + right[2] - up[2]);
+
+		//top right
+		gEngfuncs.pTriAPI->TexCoord2f(1, 0);
+		gEngfuncs.pTriAPI->Vertex3f(overlay_org[0] + right[0] + up[0], overlay_org[1] + right[1] + up[1], overlay_org[2] + right[2] + up[2]);
+
+		gEngfuncs.pTriAPI->End(); //end our list of vertexes
+		gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
+	}
 }

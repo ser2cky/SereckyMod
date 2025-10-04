@@ -152,44 +152,69 @@ EV_FireRailgun
 ======================================
 */
 
-void A_FireShotgun(void)
+void A_FireShotgun(spr_object_t* spr, float frametime, float time)
 {
 	PlaySound("weapons/DSSHOTGN.wav", 1);
 }
 
-void A_WeaponReady(void)
+void A_WeaponReady(spr_object_t* spr, float frametime, float time)
 {
 	return;
 }
 
-void A_Lower(void)
+void A_Lower(spr_object_t* spr, float frametime, float time)
+{
+	spr->old_ofs[1] = max(spr->ofs[1], -0.85f);
+	if (spr->ofs[1] > -0.85f)
+	{
+		spr->ofs[1] -= frametime * 6.0f;
+	}
+	else
+	{
+		spr->mode = SPR_GUN_IDLE;
+		spr->frame = spr->idle_frame[0];
+	}
+}
+
+void A_Raise(spr_object_t* spr, float frametime, float time)
+{
+	spr->old_ofs[1] = min(spr->ofs[1], 0.0f);
+	if (spr->ofs[1] < 0)
+	{
+		spr->ofs[1] += frametime * 6.0f;
+	}
+	else
+	{
+		if (spr->ofs[1] > 0.0f)
+			spr->ofs[1] = 0.0f;
+		spr->mode = SPR_GUN_IDLE;
+		spr->frame = spr->idle_frame[0];
+	}
+}
+
+void A_ReFire(spr_object_t* spr, float frametime, float time)
 {
 	return;
 }
 
-void A_Raise(void)
+void A_Light1(spr_object_t* spr, float frametime, float time)
 {
-	return;
+	spr->flags2 = SPR_OVERRIDE_LIGHT;
+	spr->brightness2 = 0.5f;
+	spr->color2 = { 1, 1, 1 };
 }
 
-void A_ReFire(void)
+void A_Light2(spr_object_t* spr, float frametime, float time)
 {
-	return;
-}
-
-void A_Light1(void)
-{
-	return;
-}
-
-void A_Light2(void)
-{
-	return;
+	spr->flags2 = SPR_OVERRIDE_LIGHT;
+	spr->brightness2 = 1.0f;
+	spr->color2 = {1, 1, 1};
 }
 
 void CreateShotgunSprite(void)
 {
 	HSPRITE SPR_SHTG = SPR_Load("sprites/doom/SPR_SHTG.spr");
+
 	static state_t test[] =
 	{
 		//==========================
@@ -220,12 +245,14 @@ void CreateShotgunSprite(void)
 		// flash (12, 13)
 		//==========================
 		{ SPR_SHTG,4,DoomTic(4.0f),{A_Light1},13,-0.5f, -0.325f},	// S_SGUNFLASH1
-		{ SPR_SHTG,5,DoomTic(3.0f),{A_Light2},13,-0.5f, -0.325f}	// S_SGUNFLASH2
+		{ SPR_SHTG,5,DoomTic(3.0f),{A_Light2},14,-0.5f, -0.325f},	// S_SGUNFLASH2
+		{ NULL,0,0.0f,{NULL},14,-0.5f, -0.325f}	// S_SGUNFLASH2
 	};
 
 	if (gun)
 	{
 		gun->active_sprite = test;
+		gun->active_overlay = test;
 		gun->type = spr_obj_weapon;
 
 		//gun->frame = 0;
@@ -233,7 +260,7 @@ void CreateShotgunSprite(void)
 		gun->lower_frame = { 1, 1 };
 		gun->raise_frame = { 2, 2 };
 		gun->fire_frame = { 3, 11 };
-		gun->flash_frame = { 12, 13 };
+		gun->flash_frame = { 12, 14 };
 	}
 	else
 		gun = gHUD.m_SpriteObject.R_AllocSpriteObject();

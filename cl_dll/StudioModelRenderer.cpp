@@ -1172,10 +1172,20 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		
 		if (gun) // Get colors for weapon sprites!
 		{
-			gun->color[0] = lighting.color[0];
-			gun->color[1] = lighting.color[1];
-			gun->color[2] = lighting.color[2];
-			gun->brightness = min((lighting.ambientlight + lighting.shadelight) * 1.2f, 255.0f) / 256.0f;
+			if ((gun->flags & SPR_OVERRIDE_LIGHT) == 0)
+			{
+				gun->color[0] = lighting.color[0];
+				gun->color[1] = lighting.color[1];
+				gun->color[2] = lighting.color[2];
+				gun->brightness = min((lighting.ambientlight + lighting.shadelight) * 1.2f, 255.0f) / 256.0f;
+			}
+			if ((gun->flags2 & SPR_OVERRIDE_LIGHT) == 0)
+			{
+				gun->color2[0] = lighting.color[0];
+				gun->color2[1] = lighting.color[1];
+				gun->color2[2] = lighting.color[2];
+				gun->brightness2 = min((lighting.ambientlight + lighting.shadelight) * 1.2f, 255.0f) / 256.0f;
+			}
 		}
 
 		// get remap colors
