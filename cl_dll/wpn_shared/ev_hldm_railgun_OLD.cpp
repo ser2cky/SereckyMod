@@ -28,8 +28,17 @@
 #include "com_model.h"
 #include "../particledan.h"
 #include "../my_sprites.h"
+#include "../ev_doom_actions.h"
+#include "../modelfx.h"
+
+#include "r_studioint.h"
+
+#ifdef 0
+extern engine_studio_api_t IEngineStudio;
 
 TEMPENTITY* pFlameSpawner = nullptr;
+
+
 
 /*
 ======================================
@@ -51,7 +60,7 @@ void EV_FlameParticles(vec3_t org, vec3_t vel)
 		p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH | PDAN_ANIMATE_DIE;
 
 		// Visual.
-		p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/kp_explosion.spr"));
+		p->model = "sprites/kp_explosion.spr";
 		p->brightness = 1.0f;
 		p->rendermode = kRenderTransAdd;
 		p->color = Vector(1.0f, 1.0f, 1.0f);
@@ -90,7 +99,7 @@ void EV_FlameParticles1(vec3_t org, vec3_t vel)
 		p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH;
 
 		// Visual.
-		p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/kp_fthrow1f.spr"));
+		p->model = "sprites/kp_fthrow1f.spr";
 		p->brightness = 1.0f;
 		p->rendermode = kRenderTransAdd;
 		p->color = Vector(1.0f, 1.0f, 1.0f);
@@ -157,60 +166,6 @@ void A_FireShotgun(spr_object_t* spr, float frametime, float time)
 	PlaySound("weapons/DSSHOTGN.wav", 1);
 }
 
-void A_WeaponReady(spr_object_t* spr, float frametime, float time)
-{
-	return;
-}
-
-void A_Lower(spr_object_t* spr, float frametime, float time)
-{
-	spr->old_ofs[1] = max(spr->ofs[1], -0.85f);
-	if (spr->ofs[1] > -0.85f)
-	{
-		spr->ofs[1] -= frametime * 6.0f;
-	}
-	else
-	{
-		spr->mode = SPR_GUN_IDLE;
-		spr->frame = spr->idle_frame[0];
-	}
-}
-
-void A_Raise(spr_object_t* spr, float frametime, float time)
-{
-	spr->old_ofs[1] = min(spr->ofs[1], 0.0f);
-	if (spr->ofs[1] < 0)
-	{
-		spr->ofs[1] += frametime * 6.0f;
-	}
-	else
-	{
-		if (spr->ofs[1] > 0.0f)
-			spr->ofs[1] = 0.0f;
-		spr->mode = SPR_GUN_IDLE;
-		spr->frame = spr->idle_frame[0];
-	}
-}
-
-void A_ReFire(spr_object_t* spr, float frametime, float time)
-{
-	return;
-}
-
-void A_Light1(spr_object_t* spr, float frametime, float time)
-{
-	spr->flags2 = SPR_OVERRIDE_LIGHT;
-	spr->brightness2 = 0.5f;
-	spr->color2 = { 1, 1, 1 };
-}
-
-void A_Light2(spr_object_t* spr, float frametime, float time)
-{
-	spr->flags2 = SPR_OVERRIDE_LIGHT;
-	spr->brightness2 = 1.0f;
-	spr->color2 = {1, 1, 1};
-}
-
 void CreateShotgunSprite(void)
 {
 	HSPRITE SPR_SHTG = SPR_Load("sprites/doom/SPR_SHTG.spr");
@@ -266,22 +221,68 @@ void CreateShotgunSprite(void)
 		gun = gHUD.m_SpriteObject.R_AllocSpriteObject();
 }
 
+#endif
+
 void EV_FireRailgun(event_args_t* args)
 {
 	int modelIndex, idx = args->entindex;
 	vec3_t vecFlameOrg, vecVelocity;
-	vec3_t up, right, forward;
-	vec3_t origin, vecSrc;
+	vec3_t angles, up, right, forward;
+	vec3_t origin, vecSrc, vecEnd;
 
 	char* model = "sprites/smoke.spr";
 	modelIndex = gEngfuncs.pEventAPI->EV_FindModelIndex(model);
 
 	VectorCopy(args->origin, origin);
 	EV_GetGunPosition(args, vecSrc, origin);
+	static int mode = 0;
 
 	if (EV_IsLocal(idx))
 	{
-		CreateShotgunSprite();
+		//CreateShotgunSprite();
+
+		cl_entity_t* pl = gEngfuncs.GetEntityByIndex(idx);
+		pmtrace_t tr;
+
+		if (pl)
+		{
+			VectorCopy(gHUD.m_vecAngles, angles);
+
+			AngleVectors(angles, forward, right, up);
+
+			EV_GetGunPosition(args, vecSrc, pl->origin);
+
+			VectorMA(vecSrc, 2048, forward, vecEnd);
+
+			gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(false, true);
+
+			// Store off the old count
+			gEngfuncs.pEventAPI->EV_PushPMStates();
+
+			// Now add in all of the players.
+			gEngfuncs.pEventAPI->EV_SetSolidPlayers(idx - 1);
+
+			gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+			gEngfuncs.pEventAPI->EV_PlayerTrace(vecSrc, vecEnd, PM_STUDIO_BOX, -1, &tr);
+
+			gEngfuncs.pEventAPI->EV_PopPMStates();
+
+			if (gHUD.m_iKeyBits & IN_ATTACK)
+				mode = (mode + 1) % 5;
+			switch (mode)
+			{
+			case 0: R_RailTrail(vecSrc, tr.endpos, angles); break;
+			case 1: R_TeleportSplash(tr. endpos); break;
+			case 2: R_LavaSplash(tr.endpos); break;
+			case 3: R_ParticleExplosion(tr.endpos); break;
+			case 4: R_BlobExplosion(tr.endpos); break;
+			default:break;
+			}
+
+			//R_BlobExplosion(tr.endpos);
+			//R_RailTrail(vecSrc, tr.endpos, angles);
+		}
+
 		//pFlameSpawner = gEngfuncs.pEfxAPI->R_TempModel(vecSrc, args->velocity, args->angles, 9999, modelIndex, TE_BOUNCE_NULL);
 
 		//if (pFlameSpawner != NULL)
@@ -307,11 +308,12 @@ void EV_StopFlames(event_args_t* args)
 
 	idx = args->entindex;
 	VectorCopy(args->origin, origin);
-
+#ifdef 0
 	if (pFlameSpawner != nullptr)
 	{
 		gEngfuncs.pEfxAPI->R_KillAttachedTents(idx);
 		pFlameSpawner->die = 0.0f; //you will DIE.
 		pFlameSpawner = nullptr;
 	}
+#endif
 }

@@ -1,6 +1,7 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
+*	Copyright (c) 2025 Serecky
 *
 *	This product contains software technology licensed from Id
 *	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
@@ -87,6 +88,7 @@ typedef struct spr_object_s
 
 	// Weapon only fields!
 	int					mode;				// Current gun mode. Can be Raising, Firing, Lowering, and Idling.
+	int					force_mode;			// Lets you force a gun mode. Can be Raising, Firing, Lowering, and Idling.
 	std::array<int, 2>	raise_frame;		// Lets you define range of "raising" frames.
 	std::array<int, 2>	lower_frame;		// Lets you define range of "lowering" frames.
 	std::array<int, 2>	idle_frame;			// Lets you define range of "idle" frames.

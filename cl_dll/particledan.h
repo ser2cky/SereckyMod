@@ -1,7 +1,8 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
+*	Copyright (c) 2025 Serecky
+* 
 *	This product contains software technology licensed from Id
 *	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
@@ -17,6 +18,7 @@
 #include <iostream>
 #include <array>
 
+#define INSTANT_PARTICLE -10000.0
 #define PDAN_ABSOLUTE_MIN_PARTICLES 512
 #define PDAN_MAX_PARTICLES 32768
 
@@ -27,6 +29,7 @@
 #define PDAN_ANIMATED_ALPHA					0x00000010 // Particle can have user-defined keyframes for alpha.
 #define PDAN_ANIMATED_SCALE					0x00000020 // Particle can have user-defined keyframes for scale.
 #define PDAN_GROWTH							0x00000040 // Particles can grow over time using pre-defined step and growth values.
+#define PDAN_QUAKE							0x00000080 // Particles are drawn like QuakeParticles
 
 typedef struct particledan_s
 {
@@ -51,7 +54,7 @@ typedef struct particledan_s
 	std::array<float, 5> alpha_keyframe;	// "Keyframe-able" transparency.
 	std::array<float, 2> growth_max;		// Growth rate for particles.
 
-	struct		model_s* model;	// The sprite for particles to use.
+	const char	*model;			// The sprite for particles to use.
 	int			rendermode;		// Rendermode used by particles.
 
 	// I wouldn't touch these if I were you...
@@ -75,4 +78,5 @@ public:
 	particledan_t* AllocParticleDelay(float delay);
 	void ParticleThink(float frametime, float realtime);
 	void DrawParticle(particledan_t* p);
+	void DrawQParticle(particledan_t* p);
 };

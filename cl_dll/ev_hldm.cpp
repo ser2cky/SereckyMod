@@ -234,7 +234,7 @@ void EV_HLDM_ParticleTest(Vector pos)
 		for (i = 0; i < 3; i++)
 			p->org[i] = pos[i] + gEngfuncs.pfnRandomFloat(-10.25f, 10.25f);
 
-		p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/agrunt1.spr"));
+		p->model = "sprites/agrunt1.spr";
 		p->color = Vector(255.0f / 255.0f, 255.0f / 255.0f, 0.0f);
 		p->rendermode = kRenderTransAdd;
 		//p->alpha = 128.0f / 255.0f;

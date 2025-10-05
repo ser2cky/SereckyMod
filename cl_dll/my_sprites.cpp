@@ -1,7 +1,8 @@
 /***
 *
 *	Copyright (c) 1996-2002, Valve LLC. All rights reserved.
-*
+*	Copyright (c) 2025 Serecky
+* 
 *	This product contains software technology licensed from Id
 *	Software, Inc. ("Id Technology").  Id Technology (c) 1996 Id Software, Inc.
 *	All Rights Reserved.
@@ -24,7 +25,6 @@
 	Add rotating sprite objects for monsters!
 
 	History:
-
 	9/27/25:
 	Created.
 
@@ -42,6 +42,7 @@
 #include "triangleapi.h"
 #include "com_model.h"
 #include "my_sprites.h"
+//#include 'glew.h'
 
 #include <iostream>
 #include <vector>
@@ -158,6 +159,7 @@ spr_object_t* CSpriteObject::R_AllocSpriteObject(void)
 	spr->type = spr_obj_world;
 
 	spr->mode = 0;
+	spr->force_mode = -1;
 	spr->old_ofs = { 0.0f, 0.0f };
 	spr->ofs = { 0.0f, 0.0f };
 	spr->fire_frame = { 0, 0 };
@@ -244,7 +246,7 @@ void CSpriteObject::SpriteThink(float frametime, float time)
 				spr->old_ofs[1] = Interpolate(spr->old_ofs[1], spr->ofs[1], frametime * 12.0f);
 			}
 
-			if ((gHUD.m_iKeyBits & IN_ATTACK) && (spr->mode == SPR_GUN_IDLE))
+			if (((gHUD.m_iKeyBits & IN_ATTACK) && (spr->mode == SPR_GUN_IDLE)) || spr->force_mode == SPR_GUN_FIRING)
 			{
 				// Set Muzzle-Flash frame.
 				spr->frame2 = spr->flash_frame[0];
@@ -255,6 +257,7 @@ void CSpriteObject::SpriteThink(float frametime, float time)
 				spr->nextthink = time + spr->active_sprite[spr->fire_frame[0]].tics;
 
 				spr->mode = SPR_GUN_FIRING;
+				spr->force_mode = -1;
 
 				DrawSprite(spr);
 				return;
@@ -386,6 +389,7 @@ void CSpriteObject::DrawSprite(spr_object_t* spr)
 
 		// START RENDERING!!!
 		gEngfuncs.pTriAPI->RenderMode(kRenderTransTexture);
+		//glEnable();
 		gEngfuncs.pTriAPI->Color4f(spr->color2[0], spr->color2[1], spr->color2[2], 1.0f);
 		gEngfuncs.pTriAPI->Brightness(spr->brightness2);
 

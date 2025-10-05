@@ -68,7 +68,7 @@ void Flaregun_Smoke(vec3_t org, cl_entity_s* ent)
 	{
 		flare->org = org;
 		flare->gravity = 0.0f;
-		flare->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/redflare1.spr"));
+		flare->model = "sprites/redflare1.spr";
 		flare->brightness = gEngfuncs.pfnRandomFloat(1.0f, 4.0f);
 		flare->rendermode = kRenderTransAdd;
 		flare->color = Vector(1.0f, 1.0f, 1.0f);
@@ -96,7 +96,7 @@ void Flaregun_Smoke(vec3_t org, cl_entity_s* ent)
 			p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH;
 
 			// Visual.
-			p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/particle_smokegrenade.spr"));
+			p->model = "sprites/particle_smokegrenade.spr";
 			p->brightness = 1.0f;
 			p->rendermode = kRenderTransAdd;
 			p->color = Vector(1.0f, 56.0f / 255.0f, 56.0f / 255.0f);
@@ -143,7 +143,7 @@ void Flames(vec3_t org, cl_entity_s* ent)
 		p->flags = PDAN_ANIMATED_ALPHA | PDAN_GROWTH;
 
 		// Visual.
-		p->model = (struct model_s*)gEngfuncs.GetSpritePointer(SPR_Load("sprites/floorfire4_.spr"));
+		p->model = "sprites/floorfire4_.spr";
 		p->brightness = 1.0f;
 		p->rendermode = kRenderTransAdd;
 		p->color = Vector(1.0f, 1.0f, 1.0f);

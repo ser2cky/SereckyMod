@@ -17,8 +17,17 @@
       <UniqueIdentifier>{23c24e01-4563-4bc6-8389-9cda166c4273}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
-    <Filter Include="Source Files\wpn_shared">
+    <Filter Include="Source Files\vgui">
+      <UniqueIdentifier>{229aa9d3-c58c-4a0d-82c2-c300ca244e9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hud">
+      <UniqueIdentifier>{d7919d32-f2a1-4128-ba2b-036beb976acf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\weapons">
       <UniqueIdentifier>{3af6f565-27c5-40e8-b292-1ef7c6f6c193}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\pm_shared">
+      <UniqueIdentifier>{bb0fee1a-28c8-46e7-af5e-da77db1421da}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -55,25 +64,7 @@
     <ClCompile Include="..\game_shared\voice_status.cpp">
       <Filter>Source Files\hl</Filter>
     </ClCompile>
-    <ClCompile Include="ammo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ammo_secondary.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ammohistory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="battery.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cdll_int.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="com_weapons.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="death.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="demo.cpp">
@@ -82,40 +73,7 @@
     <ClCompile Include="entity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ev_common.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="events.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="flashlight.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GameStudioModelRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="geiger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="health.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hud.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hud_msg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hud_redraw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hud_servers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hud_spectator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hud_update.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="in_camera.cpp">
@@ -127,34 +85,10 @@
     <ClCompile Include="inputw32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="menu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="message.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="overview.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="parsemsg.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\pm_shared\pm_debug.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\pm_shared\pm_math.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\pm_shared\pm_shared.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="saytext.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="status_icons.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="statusbar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="studio_util.cpp">
@@ -163,67 +97,10 @@
     <ClCompile Include="StudioModelRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="text_message.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="train.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="tri.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game_shared\vgui_checkbutton2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_ClassMenu.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_ConsolePanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_ControlConfigPanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_CustomObjects.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game_shared\vgui_grid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game_shared\vgui_helpers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_int.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game_shared\vgui_listbox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\game_shared\vgui_loadtga.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_MOTDWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_SchemeManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_ScorePanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_ServerBrowser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_SpectatorPanel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_TeamFortressViewport.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="vgui_teammenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="view.cpp">
@@ -269,69 +146,57 @@
       <Filter>Source Files\hl</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_mp5.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_python.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_rpg.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_shotgun.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_squeakgrenade.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_tripmine.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_crossbow.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_crowbar.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_egon.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_gauss.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_glock.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="wpn_shared\ev_hldm_hornetgun.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
     <ClCompile Include="..\dlls\weapon_shared.cpp">
       <Filter>Source Files\hl</Filter>
     </ClCompile>
-    <ClCompile Include="wpn_shared\ev_hldm_colt.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dlls\wpn_shared\hl_wpn_colt.cpp">
-      <Filter>Source Files\hl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\dlls\wpn_shared\hl_wpn_thompson.cpp">
-      <Filter>Source Files\hl</Filter>
-    </ClCompile>
-    <ClCompile Include="wpn_shared\ev_hldm_thompson.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
-    </ClCompile>
     <ClCompile Include="particledan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\dlls\wpn_shared\hl_wpn_railgun.cpp">
+    <ClCompile Include="..\dlls\wpn_shared\q2_wpn_railgun.cpp">
       <Filter>Source Files\hl</Filter>
     </ClCompile>
-    <ClCompile Include="wpn_shared\ev_hldm_railgun.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+    <ClCompile Include="wpn_shared\ev_q2dm_railgun.cpp">
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
-    <ClCompile Include="wpn_shared\ev_hldm_flare.cpp">
-      <Filter>Source Files\wpn_shared</Filter>
+    <ClCompile Include="wpn_shared\ev_hl2dm_flare.cpp">
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
-    <ClCompile Include="..\dlls\wpn_shared\hl_wpn_flare.cpp">
+    <ClCompile Include="..\dlls\wpn_shared\hl2_wpn_flare.cpp">
       <Filter>Source Files\hl</Filter>
     </ClCompile>
     <ClCompile Include="elightworld.cpp">
@@ -339,6 +204,144 @@
     </ClCompile>
     <ClCompile Include="my_sprites.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_teammenu.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game_shared\vgui_checkbutton2.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_ClassMenu.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_ConsolePanel.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_ControlConfigPanel.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_CustomObjects.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game_shared\vgui_grid.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game_shared\vgui_helpers.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_int.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game_shared\vgui_listbox.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game_shared\vgui_loadtga.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_MOTDWindow.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_SchemeManager.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_ScorePanel.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_ServerBrowser.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_SpectatorPanel.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="vgui_TeamFortressViewport.cpp">
+      <Filter>Source Files\vgui</Filter>
+    </ClCompile>
+    <ClCompile Include="ammo.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="ammo_secondary.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="ammohistory.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="battery.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="text_message.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="status_icons.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="saytext.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="statusbar.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="com_weapons.cpp">
+      <Filter>Source Files\weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="ev_common.cpp">
+      <Filter>Source Files\weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="events.cpp">
+      <Filter>Source Files\weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pm_shared\pm_shared.c">
+      <Filter>Source Files\pm_shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pm_shared\pm_math.c">
+      <Filter>Source Files\pm_shared</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pm_shared\pm_debug.c">
+      <Filter>Source Files\pm_shared</Filter>
+    </ClCompile>
+    <ClCompile Include="hud.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="hud_msg.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="hud_redraw.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="hud_servers.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="hud_spectator.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="hud_update.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="flashlight.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="train.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="death.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="geiger.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="menu.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="health.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="overview.cpp">
+      <Filter>Source Files\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="modelfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ev_doom_actions.cpp">
+      <Filter>Source Files\weapons</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -475,6 +478,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="my_sprites.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="modelfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ev_doom_actions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

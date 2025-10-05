@@ -56,6 +56,13 @@ enum rtcw_anims_e {
 	GUN_ALT_SWITCH_TO
 };
 
+enum q2_anims_e {
+	Q2_DRAW = 0,
+	Q2_FIRE,
+	Q2_IDLE,
+	Q2_HOLSTER
+};
+
 bool CheckPVS(int playerIndex);
 void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName );
 void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, int iBulletType );
@@ -80,10 +87,7 @@ void EV_EgonStop(event_args_s* args);
 void EV_HornetGunFire(event_args_s* args);
 void EV_TripmineFire(event_args_s* args);
 void EV_SnarkFire(event_args_s* args);
-void EV_FireColt(event_args_s* args);
-void EV_FireThompson(event_args_s* args);
 void EV_FireRailgun(event_args_s* args);
-void EV_StopFlames(event_args_s* args);
 void EV_FireFlare(event_args_s* args);
 
 void EV_TrainPitchAdjust(event_args_s* args);

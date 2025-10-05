@@ -94,6 +94,9 @@ qboolean	v_resetCamera = 1;
 
 vec3_t ev_punchangle;
 
+vec3_t kick_origin;
+vec3_t kick_angles;
+
 cvar_t	*scr_ofsx;
 cvar_t	*scr_ofsy;
 cvar_t	*scr_ofsz;
@@ -132,6 +135,8 @@ float		groundTime = 0.0f;
 float		view_ofs = 0.0f;
 static float landChange = -8.0f;
 float		client_bobtime = 0.0f;
+float		v_dmg_roll, v_dmg_pitch, v_dmg_time;	// damage kicks
+static float fall_time, fall_value;		// for view drop on fall
 
 cvar_t		*cl_gun_roll;
 cvar_t		*cl_gun_yaw;
@@ -407,14 +412,15 @@ Quake2 Viewbob.
 ===============
 */
 
-void V_Q2_CalcBobNew(struct ref_params_s* pparams)
+void V_Q2_CalcBobNew(struct ref_params_s* pparams, double time)
 {
 	int		i;
 	float	delta;
 	cl_entity_t *view, *ent;
 	static vec3_t oldv = { 0, 0, 0 };
 	static vec3_t v = { 0, 0, 0 };
-	static float nextthink = 0.0f;
+	static vec3_t prev_angles = { 0, 0, 0 };
+	static float nextthink;
 
 	ent = gEngfuncs.GetLocalPlayer();
 	view = gEngfuncs.GetViewModel();
@@ -422,25 +428,25 @@ void V_Q2_CalcBobNew(struct ref_params_s* pparams)
 	if (!view)
 		return;
 
-	if ( nextthink <= pparams->time || nextthink - pparams->time > 0.1f )
+	if ( nextthink <= time || nextthink - time > 0.1f)
 	{
 		oldv = v; // Interp. helps to add that weird jankiness
 		// Quake2's viewbob had... - serecky 9.8.25
 
 		// gun angles from bobbing
-		v[ROLL] = xyspeed * bobfracsin * cl_gun_roll->value;
+		v[ROLL] = -xyspeed * bobfracsin * cl_gun_roll->value;
 		v[YAW] = xyspeed * bobfracsin * cl_gun_yaw->value;
 		if (bobcycle & 1)
 		{
 			v[ROLL] = -v[ROLL];
 			v[YAW] = -v[YAW];
 		}
-		v[PITCH] = xyspeed * bobfracsin * cl_gun_pitch->value;
+		v[PITCH] = -xyspeed * bobfracsin * cl_gun_pitch->value;
 
 		// gun angles from delta movement
 		for (i = 0; i < 3; i++)
 		{
-			delta = (ent->prevstate.angles[i] - ent->curstate.angles[i]) * 5.0f;
+			delta = (prev_angles[i] - ent->curstate.angles[i]);
 			if (delta > 180)
 				delta -= 360;
 			if (delta < -180)
@@ -450,24 +456,76 @@ void V_Q2_CalcBobNew(struct ref_params_s* pparams)
 			if (delta < -45)
 				delta = -45;
 			if (i == YAW)
-				v[ROLL] += 0.1 * delta;
+				v[ROLL] += -0.1 * delta;
 			v[i] += 0.2 * delta;
 		}
-		VectorCopy(ent->angles, ent->curstate.angles);
-		VectorCopy(ent->angles, ent->prevstate.angles);
-		nextthink = pparams->time + 0.1f;
+		VectorCopy(ent->angles, prev_angles);
+		nextthink = time + 0.1f;
 	}
 
  	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("OLD: %.2f %.2f %.2f\n", oldv[0], oldv[1], oldv[2]));
 	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("new: %.2f %.2f %.2f\n", v[0], v[1], v[2]));
 
 	for (i = 0; i < 3; i++)
-	{
-		oldv[i] = LerpAngle(oldv[i], v[i], pparams->frametime * 10.0f);
-	}
+		oldv[i] = LerpAngle(oldv[i], v[i], 1.0f - (nextthink - time) * 10.0f);
 
 	VectorAdd(oldv, view->angles, view->angles);
 	VectorCopy(view->angles, view->curstate.angles);
+}
+
+/*
+=================
+P_FallingDamage
+=================
+*/
+
+#define	FALL_TIME		0.3
+
+void P_FallingDamage(struct ref_params_s* pparams, double time)
+{
+	static float nextthink = 0.0f;
+	float	delta;
+	int		damage;
+	vec3_t	dir;
+	static vec3_t oldvel = { 0, 0, 0 };
+
+	if (nextthink <= time || nextthink - time > 0.1f)
+	{
+		VectorCopy(pparams->simvel, oldvel);
+		nextthink = time + 0.1f;
+	}
+
+	if ((oldvel[2] < 0) && (pparams->simvel[2] > oldvel[2]) && (!pparams->onground))
+		delta = oldvel[2];
+	else
+	{
+		if (!pparams->onground)
+			return;
+		delta = pparams->simvel[2] - oldvel[2];
+	}
+	delta = delta * delta * 0.0001;
+
+	// never take falling damage if completely underwater
+	if (pparams->waterlevel == 3)
+		return;
+	if (pparams->waterlevel == 2)
+		delta *= 0.25;
+	if (pparams->waterlevel == 1)
+		delta *= 0.5;
+
+	if (delta < 1)
+		return;
+
+	if (delta < 15)
+	{
+	//	ent->s.event = EV_FOOTSTEP;
+		return;
+	}
+
+	fall_value = delta * 0.5;
+	if (fall_value > 40)
+		fall_value = 40;
+	fall_time = time + FALL_TIME;
 }
 
 /*
@@ -477,81 +535,124 @@ Quake2 Camerabob.
 ===================
 */
 
-void V_Q2_CalcViewOffset(struct ref_params_s* pparams)
+void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 {
-	float		bob, delta;
-	static vec3_t oldv = { 0, 0, 0 };
-	static vec3_t v = { 0, 0, 0 };
+	float		bob, delta, ratio;
 	static float nextthink = 0.0f;
 	int i;
 
-	if ( nextthink <= pparams->time || nextthink - pparams->time > 0.1f )
+	static vec3_t oldv = { 0, 0, 0 };
+	static vec3_t v = { 0, 0, 0 };
+
+	static vec3_t oldangles = { 0, 0, 0 };
+	static vec3_t angles = { 0, 0, 0 };
+
+	if ( nextthink <= time || nextthink - time > 0.1f )
 	{
+		// add angles based on weapon kick
+		oldangles = angles;
+
+		// base angles
+		angles = kick_angles;
+
+		// clear weapon kicks
+		VectorClear(kick_angles);
+
 		// add angles based on damage kick
-
-		oldv = v;
-
-		//ratio = (ent->client->v_dmg_time - level.time) / DAMAGE_TIME;
+		//ratio = (v_dmg_time - time) / DAMAGE_TIME;
 		//if (ratio < 0)
 		//{
 		//	ratio = 0;
 		//	ent->client->v_dmg_pitch = 0;
 		//	ent->client->v_dmg_roll = 0;
 		//}
-		//angles[PITCH] += ratio * ent->client->v_dmg_pitch;
-		//angles[ROLL] += ratio * ent->client->v_dmg_roll;
+		//angles[PITCH] += ratio * v_dmg_pitch;
+		//angles[ROLL] += ratio * v_dmg_roll;
 
 		//// add pitch based on fall kick
 
-		//ratio = (ent->client->fall_time - level.time) / FALL_TIME;
-		//if (ratio < 0)
-		//	ratio = 0;
-		//angles[PITCH] += ratio * ent->client->fall_value;
+		ratio = (fall_time - time) / FALL_TIME;
+		if (ratio < 0)
+			ratio = 0;
+		angles[PITCH] += ratio * fall_value;
 
 		// add angles based on velocity
 
 		delta = DotProduct(pparams->simvel, pparams->forward);
-		v[PITCH] = delta * cl_run_pitch->value;
+		angles[PITCH] += delta * cl_run_pitch->value;
 
 		delta = DotProduct(pparams->simvel, pparams->right);
-		v[ROLL] += delta * cl_run_roll->value;
+		angles[ROLL] += delta * cl_run_roll->value;
 
 		// add angles based on bob
 
 		delta = bobfracsin * cl_bob_pitch->value * xyspeed;
 		if (in_duck.state & 1)
 			delta *= 6;		// crouching
-		v[PITCH] = delta;
+		angles[PITCH] += delta;
 		delta = bobfracsin * cl_bob_roll->value * xyspeed;
 		if (in_duck.state & 1)
 			delta *= 6;		// crouching
 		if (bobcycle & 1)
 			delta = -delta;
-		v[ROLL] = delta;
+		angles[ROLL] += delta;
+
+		//===================================
+
+		// base origin
+
+		oldv = v;
+		VectorClear(v);
 
 		// add fall height
 
-		//ratio = (ent->client->fall_time - level.time) / FALL_TIME;
-		//if (ratio < 0)
-		//	ratio = 0;
-		//v[2] -= ratio * ent->client->fall_value * 0.4;
-		nextthink = pparams->time + 0.1f;
+		ratio = (fall_time - time) / FALL_TIME;
+		if (ratio < 0)
+			ratio = 0;
+		v[2] -= ratio * fall_value * 0.4;
+
+		// add bob height
+
+		bob = bobfracsin * xyspeed * cl_bob_up->value;
+		if (bob > 6)
+			bob = 6;
+		//gi.DebugGraph (bob *2, 255);
+		v[2] += bob;
+
+		// add kick offset
+
+		VectorAdd(v, kick_origin, v);
+
+		// clear weapon kicks
+		VectorClear(kick_origin);
+
+		// absolutely bound offsets
+		// so the view can never be outside the player box
+
+		if (v[0] < -14)
+			v[0] = -14;
+		else if (v[0] > 14)
+			v[0] = 14;
+		if (v[1] < -14)
+			v[1] = -14;
+		else if (v[1] > 14)
+			v[1] = 14;
+		if (v[2] < -22)
+			v[2] = -22;
+		else if (v[2] > 30)
+			v[2] = 30;
+
+		nextthink = time + 0.1f;
 	}
-
-	// add bob height
-
-	bob = bobfracsin * xyspeed * cl_bob_up->value;
-	if (bob > 6)
-		bob = 6;
-	//gi.DebugGraph (bob *2, 255);
-	pparams->viewheight[2] += bob;
 
 	for (i = 0; i < 3; i++)
 	{
-		oldv[i] = LerpAngle(oldv[i], v[i], pparams->frametime * 10.0f);
+		oldangles[i] = LerpAngle(oldangles[i], angles[i], 1.0f - (nextthink - time) * 10.0f);
+		oldv[i] = LerpAngle(oldv[i], v[i], 1.0f - (nextthink - time) * 10.0f);
 	}
 
-	VectorAdd(oldv, pparams->viewangles, pparams->viewangles);
+	VectorAdd(oldangles, pparams->viewangles, pparams->viewangles);
+	VectorAdd(oldv, pparams->viewheight, pparams->viewheight);
 }
 
 /*
@@ -560,18 +661,22 @@ V_Q2_CalcBobValues
 Calc Quake2 Viewbob Values
 ============================
 */
+
 void V_Q2_CalcBobValues(struct ref_params_s* pparams)
 {
 	float bobtime = 0.0f; 
 	static float nextthink;
+	static double time;
 
 	if (pparams->frametime <= 0.0f)
 		return;
 
+	time += pparams->frametime;
+
 	cl_entity_t* view;
 	view = gEngfuncs.GetViewModel();
 
-	if ( nextthink <= pparams->time || nextthink - pparams->time > 0.1f)
+	if ( nextthink <= time || nextthink - time > 0.1f)
 	{
 		xyspeed = sqrt(pparams->simvel[0] * pparams->simvel[0] + pparams->simvel[1] * pparams->simvel[1]);
 
@@ -598,15 +703,18 @@ void V_Q2_CalcBobValues(struct ref_params_s* pparams)
 		bobcycle = (int)bobtime;
 		bobfracsin = fabs(sin(bobtime * M_PI));
 
-		nextthink = pparams->time + 0.1f;
+		nextthink = time + 0.1f;
 	}
+
+	// detect hitting the floor
+	P_FallingDamage(pparams, time);
+
 	// determine the view offsets
-	V_Q2_CalcViewOffset(pparams);
+	V_Q2_CalcViewOffset(pparams, time);
 
 	// determine the gun offsets
-	V_Q2_CalcBobNew(pparams);
+	V_Q2_CalcBobNew(pparams, time);
 }
-
 /*
 ============================
 V_DoomCalcBob
@@ -624,7 +732,7 @@ Calc Doom1/2 Viewbob Values
 void V_DoomCalcBob(struct ref_params_s* pparams)
 {
 	static float bob, swingx, swingy, playerbob, angle;
-	static	double	bobtime;
+	static	double	bobtime, bobtime2;
 	vec3_t vel;
 	int i;
 
@@ -663,13 +771,18 @@ void V_DoomCalcBob(struct ref_params_s* pparams)
 	view->origin[2] += bob;
 	// Little check to pause bobbing if we're firing a gun!!
 	// - serecky 10/2/25
-	if (gun && gun->mode == SPR_GUN_FIRING)
-		return;
+	if (gun)
+	{
+		if (gun->mode == SPR_GUN_IDLE)
+			bobtime2 = bobtime;
+	}
+	else
+		bobtime2 = bobtime;
 
 	// bob the weapon based on movement speed
-	angle = fmod((bobtime * 4), 2 * M_PI);
+	angle = fmod((bobtime2 * 4), 2 * M_PI);
 	swingx = playerbob * cos(angle);
-	angle = fmod((bobtime * 4), M_PI);
+	angle = fmod((bobtime2 * 4), M_PI);
 	swingy = playerbob * sin(angle);
 
 	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("%.2f\n", playerbob));
@@ -2116,6 +2229,25 @@ Client side punch effect
 void V_PunchAxis( int axis, float punch )
 {
 	ev_punchangle[ axis ] = punch;
+}
+
+/*
+=============
+V_Q2Punch
+
+Client side punch effect
+for Quake2!!!
+=============
+*/
+void V_Q2Punch(float* kick_org, float* kick_ang)
+{
+	kick_origin[0] = kick_org[0];
+	kick_origin[1] = kick_org[1];
+	kick_origin[2] = kick_org[2];
+
+	kick_angles[0] = kick_ang[0];
+	kick_angles[1] = kick_ang[1];
+	kick_angles[2] = kick_ang[2];
 }
 
 /*

@@ -1107,33 +1107,6 @@ private:
 	unsigned short m_usSnarkFire;
 };
 
-class CColt : public CBasePlayerWeapon
-{
-public:
-	void Spawn(void);
-	void Precache(void);
-	int iItemSlot(void) { return 2; }
-	int GetItemInfo(ItemInfo* p);
-
-	void PrimaryAttack(void);
-	BOOL Deploy(void);
-	void Reload(void);
-	void WeaponIdle(void);
-
-	virtual BOOL UseDecrement(void)
-	{
-#if defined( CLIENT_WEAPONS )
-		return TRUE;
-#else
-		return FALSE;
-#endif
-	}
-
-private:
-	int m_iShell;
-	unsigned short m_usFireColt;
-};
-
 class CFlareGun : public CBasePlayerWeapon
 {
 public:
@@ -1160,33 +1133,6 @@ private:
 	unsigned short m_usFireFlare;
 };
 
-class CThompson : public CBasePlayerWeapon
-{
-public:
-	void Spawn( void );
-	void Precache( void );
-	int iItemSlot( void ) { return 3; }
-	int GetItemInfo(ItemInfo *p);
-
-	void PrimaryAttack( void );
-	BOOL Deploy( void );
-	void Reload( void );
-	void WeaponIdle( void );
-
-	virtual BOOL UseDecrement( void )
-	{ 
-#if defined( CLIENT_WEAPONS )
-		return TRUE;
-#else
-		return FALSE;
-#endif
-	}
-
-private:
-	int m_iShell;
-	unsigned short m_usFireThompson;
-};
-
 class CQuake2Railgun : public CBasePlayerWeapon
 {
 public:
@@ -1198,7 +1144,7 @@ public:
 	BOOL Deploy(void);
 	void WeaponIdle(void);
 	void PrimaryAttack(void);
-	void ItemPostFrame(void);
+	void Fire_Rail(vec3_t start, vec3_t aimdir, int damage);
 
 	virtual BOOL UseDecrement(void)
 	{
@@ -1211,7 +1157,6 @@ public:
 
 private:
 	unsigned short m_usFireRailgun;
-	unsigned short m_usStopRailgun;
 };
 
 // Based off weapon.cfg from all of the
