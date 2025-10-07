@@ -68,3 +68,5 @@ void EV_CreateTracer( float *start, float *end );
 struct cl_entity_s *GetEntity( int idx );
 struct cl_entity_s *GetViewEntity( void );
 void EV_MuzzleFlash( void );
+void EV_WeaponAnimation(int sequence, int body);
+void EV_ProjectSource(float* point, float* distance, float* forward, float* right, float* result);

@@ -32,56 +32,43 @@
 
 void V_Q2Punch(float* kick_org, float* kick_ang);
 
-void EV_FireRailgun(event_args_t* args)
+void EV_FireMachinegun(event_args_t* args)
 {
+	int machinegun_shots = args->iparam1;
 	int idx = args->entindex;
+	static float nxth = 0.0f;
+	float viewheight;
+	int i;
+
 	vec3_t angles, up, right, forward;
 	vec3_t origin, start, end, offset;
 	vec3_t kick_origin, kick_angles;
-	float viewheight;
 
 	VectorCopy(args->origin, origin);
 	viewheight = args->ducking == 1 ? VEC_DUCK_VIEW : DEFAULT_VIEWHEIGHT;
 
 	if (EV_IsLocal(idx))
 	{
-		cl_entity_t* pl = gEngfuncs.GetEntityByIndex(idx);
-		pmtrace_t tr;
-
-		EV_WeaponAnimation(Q2_FIRE, 0);
-		gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, "weapons/q2/RAILGF1A.WAV", 0.95, ATTN_NORM, 0, PITCH_NORM);
-
-		if (pl)
+		if (nxth <= gEngfuncs.GetClientTime() || (nxth - gEngfuncs.GetClientTime()) > 0.2f)
 		{
-			VectorCopy(gHUD.m_vecAngles, angles);
-
-			AngleVectors(angles, forward, right, up);
-			VectorScale(forward, -3, kick_origin);
-			kick_angles[0] = -3;
-
-			V_Q2Punch((float*)&kick_origin, (float*)&kick_angles);
-
-			VectorSet(offset, 0, 7, viewheight - 8);
-			EV_ProjectSource(origin, offset, forward, right, start);
-
-			VectorMA(start, 2048, forward, end);
-
-			gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(false, true);
-
-			// Store off the old count
-			gEngfuncs.pEventAPI->EV_PushPMStates();
-
-			// Now add in all of the players.
-			gEngfuncs.pEventAPI->EV_SetSolidPlayers(idx - 1);
-
-			gEngfuncs.pEventAPI->EV_SetTraceHull(2);
-			gEngfuncs.pEventAPI->EV_PlayerTrace(start, end, PM_WORLD_ONLY, -1, &tr);
-
-			gEngfuncs.pEventAPI->EV_PopPMStates();
-
-			R_RailTrail(start, tr.endpos, angles);
+			EV_WeaponAnimation(Q2_FIRE, 0);
+			nxth = gEngfuncs.GetClientTime() + 0.2f;
 		}
 	}
+
+	gEngfuncs.pEventAPI->EV_PlaySound(idx, origin, CHAN_WEAPON, 
+		UTIL_VarArgs("weapons/q2/Machgf%db.wav", gEngfuncs.pfnRandomLong( 1, 5 ))
+		, 0.95, ATTN_NORM, 0, PITCH_NORM);
+
+	for (i = 1; i < 3; i++)
+	{
+		kick_origin[i] = gEngfuncs.pfnRandomFloat(-1.0f, 1.0f) * 0.35;
+		kick_angles[i] = gEngfuncs.pfnRandomFloat(-1.0f, 1.0f) * 0.7;
+	}
+	kick_origin[0] = gEngfuncs.pfnRandomFloat(-1.0f, 1.0f) * 0.35;
+	kick_angles[0] = machinegun_shots * -1.5;
+
+	V_Q2Punch((float*)&kick_origin, (float*)&kick_angles);
 
 	dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
 	VectorCopy(origin, dl->origin);
@@ -90,8 +77,8 @@ void EV_FireRailgun(event_args_t* args)
 	VectorMA(dl->origin, 16, right, dl->origin);
 	dl->radius = 200 + (rand() & 31);
 	dl->minlight = 32;
-	dl->die = gEngfuncs.GetClientTime() + 0.1f;
-	dl->color.r = 128; 
-	dl->color.g = 128;
-	dl->color.b = 255;
+	dl->die = gEngfuncs.GetClientTime();
+	dl->color.r = 255;
+	dl->color.g = 255;
+	dl->color.b = 0;
 }

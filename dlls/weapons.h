@@ -92,10 +92,10 @@ public:
 #define WEAPON_TRIPMINE			13
 #define	WEAPON_SATCHEL			14
 #define	WEAPON_SNARK			15
-#define WEAPON_COLT				16
-#define WEAPON_THOMPSON			17
-#define WEAPON_RAILGUN			18
-#define WEAPON_FLAREGUN			19
+
+#define WEAPON_RAILGUN			16
+#define WEAPON_FLAREGUN			17
+#define WEAPON_MACHINEGUN		18
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -122,9 +122,9 @@ public:
 #define SNARK_WEIGHT		5
 #define SATCHEL_WEIGHT		-10
 #define TRIPMINE_WEIGHT		-10
-#define COLT_WEIGHT			10
-#define THOMPSON_WEIGHT		15
+
 #define RAILGUN_WEIGHT		20
+#define MACHINEGUN_WEIGHT	10
 #define FLAREGUN_WEIGHT		5
 
 // weapon clip/carry ammo capacities
@@ -160,8 +160,7 @@ public:
 #define SATCHEL_MAX_CLIP		WEAPON_NOCLIP
 #define TRIPMINE_MAX_CLIP		WEAPON_NOCLIP
 #define SNARK_MAX_CLIP			WEAPON_NOCLIP
-#define COLT_MAX_CLIP			8
-#define THOMPSON_MAX_CLIP		30
+
 #define RAILGUN_MAX_CLIP		WEAPON_NOCLIP
 #define FLAREGUN_MAX_CLIP		1
 
@@ -182,8 +181,7 @@ public:
 #define TRIPMINE_DEFAULT_GIVE		1
 #define SNARK_DEFAULT_GIVE			5
 #define HIVEHAND_DEFAULT_GIVE		8
-#define COLT_DEFAULT_GIVE			8
-#define THOMPSON_DEFAULT_GIVE		30
+
 #define RAILGUN_DEFAULT_GIVE		25
 #define FLAREGUN_DEFAULT_GIVE		5
 
@@ -409,6 +407,7 @@ extern DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles 
 extern DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for blood drops
 extern DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for blood spray (bigger)
 
+extern void P_ProjectSource(float* point, float* distance, float* forward, float* right, float* result);
 extern void ClearMultiDamage(void);
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
 extern void AddMultiDamage( entvars_t *pevInflictor, CBaseEntity *pEntity, float flDamage, int bitsDamageType);
@@ -1157,6 +1156,33 @@ public:
 
 private:
 	unsigned short m_usFireRailgun;
+};
+
+class CQuake2MachineGun : public CBasePlayerWeapon
+{
+public:
+	void Spawn(void);
+	void Precache(void);
+	int iItemSlot(void) { return 0; }
+	int GetItemInfo(ItemInfo* p);
+
+	BOOL Deploy(void);
+	void WeaponIdle(void);
+	void PrimaryAttack(void);
+	void ItemPostFrame(void);
+
+	virtual BOOL UseDecrement(void)
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	int machinegun_shots;
+	unsigned short m_usFireMachinegun;
 };
 
 // Based off weapon.cfg from all of the

@@ -134,6 +134,7 @@
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_hornetgun.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_mp5.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_python.cpp" />
+    <ClCompile Include="..\dlls\wpn_shared\q2_wpn_machinegun.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\q2_wpn_railgun.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_rpg.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_satchel.cpp" />
@@ -224,6 +225,7 @@
     <ClCompile Include="wpn_shared\ev_hldm_hornetgun.cpp" />
     <ClCompile Include="wpn_shared\ev_hldm_mp5.cpp" />
     <ClCompile Include="wpn_shared\ev_hldm_python.cpp" />
+    <ClCompile Include="wpn_shared\ev_q2dm_machinegun.cpp" />
     <ClCompile Include="wpn_shared\ev_q2dm_railgun.cpp" />
     <ClCompile Include="wpn_shared\ev_hldm_rpg.cpp" />
     <ClCompile Include="wpn_shared\ev_hldm_shotgun.cpp" />

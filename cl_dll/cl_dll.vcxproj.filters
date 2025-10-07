@@ -31,9 +31,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ev_hldm.cpp">
-      <Filter>Source Files\hl</Filter>
-    </ClCompile>
     <ClCompile Include="hl\hl_baseentity.cpp">
       <Filter>Source Files\hl</Filter>
     </ClCompile>
@@ -341,6 +338,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ev_doom_actions.cpp">
+      <Filter>Source Files\weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dlls\wpn_shared\q2_wpn_machinegun.cpp">
+      <Filter>Source Files\hl</Filter>
+    </ClCompile>
+    <ClCompile Include="ev_hldm.cpp">
+      <Filter>Source Files\weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\ev_q2dm_machinegun.cpp">
       <Filter>Source Files\weapons</Filter>
     </ClCompile>
   </ItemGroup>

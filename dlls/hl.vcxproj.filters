@@ -345,6 +345,9 @@
     <ClCompile Include="wpn_shared\q2_wpn_railgun.cpp">
       <Filter>Source Files\weapons</Filter>
     </ClCompile>
+    <ClCompile Include="wpn_shared\q2_wpn_machinegun.cpp">
+      <Filter>Source Files\weapons</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="activity.h">

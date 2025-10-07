@@ -739,6 +739,15 @@ float CStudioModelRenderer::StudioEstimateFrame( mstudioseqdesc_t *pseqdesc )
 
 	if (pseqdesc->flags & STUDIO_LOOPING) 
 	{
+		// Code taken from "BlueNightHawk/modernwaffle"
+		if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+		{
+			if (f >= pseqdesc->numframes - 1.001)
+			{
+				m_pCurrentEntity->latched.prevsequence = m_pCurrentEntity->curstate.sequence;
+			}
+		}
+
 		if (pseqdesc->numframes > 1)
 		{
 			f -= (int)(f / (pseqdesc->numframes - 1)) *  (pseqdesc->numframes - 1);
@@ -1122,6 +1131,23 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 	IEngineStudio.StudioSetHeader( m_pStudioHeader );
 	IEngineStudio.SetRenderModel( m_pRenderModel );
 
+	if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+	{
+		if (!strcmp(m_pCurrentEntity->model->name, "models/v_machn.mdl"))
+		{
+			static model_s* pPrevModel = nullptr;
+
+			m_pCurrentEntity->latched.sequencetime = m_pCurrentEntity->curstate.animtime;
+
+			if (pPrevModel != m_pRenderModel)
+			{
+				m_pCurrentEntity->latched.prevsequence = m_pCurrentEntity->curstate.sequence;
+				m_pCurrentEntity->latched.prevframe = 0.0f;
+				pPrevModel = m_pRenderModel;
+			}
+		}
+	}
+
 	StudioSetUpTransform( 0 );
 
 	if (flags & STUDIO_RENDER)
@@ -1170,21 +1196,24 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		// model and frame independant
 		IEngineStudio.StudioSetupLighting (&lighting);
 		
-		if (gun) // Get colors for weapon sprites!
+		if (m_pCurrentEntity == gEngfuncs.GetViewModel() && m_pRenderModel == gEngfuncs.GetViewModel()->model)
 		{
-			if ((gun->flags & SPR_OVERRIDE_LIGHT) == 0)
+			if (gun) // Get colors for weapon sprites!
 			{
-				gun->color[0] = lighting.color[0];
-				gun->color[1] = lighting.color[1];
-				gun->color[2] = lighting.color[2];
-				gun->brightness = min((lighting.ambientlight + lighting.shadelight) * 1.2f, 255.0f) / 256.0f;
-			}
-			if ((gun->flags2 & SPR_OVERRIDE_LIGHT) == 0)
-			{
-				gun->color2[0] = lighting.color[0];
-				gun->color2[1] = lighting.color[1];
-				gun->color2[2] = lighting.color[2];
-				gun->brightness2 = min((lighting.ambientlight + lighting.shadelight) * 1.2f, 255.0f) / 256.0f;
+				if ((gun->flags & SPR_OVERRIDE_LIGHT) == 0)
+				{
+					gun->color[0] = lighting.color[0];
+					gun->color[1] = lighting.color[1];
+					gun->color[2] = lighting.color[2];
+					gun->brightness = min((lighting.ambientlight + lighting.shadelight) * 1.2f, 255.0f) / 256.0f;
+				}
+				if ((gun->flags2 & SPR_OVERRIDE_LIGHT) == 0)
+				{
+					gun->color2[0] = lighting.color[0];
+					gun->color2[1] = lighting.color[1];
+					gun->color2[2] = lighting.color[2];
+					gun->brightness2 = min((lighting.ambientlight + lighting.shadelight) * 1.2f, 255.0f) / 256.0f;
+				}
 			}
 		}
 

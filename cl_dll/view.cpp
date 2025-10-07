@@ -104,8 +104,6 @@ cvar_t	*scr_ofsz;
 cvar_t	*v_centermove;
 cvar_t	*v_centerspeed;
 
-
-
 cvar_t	*cl_waterdist;
 cvar_t	*cl_chasedist;
 
@@ -406,74 +404,6 @@ float LerpAngle(float a2, float a1, float frac)
 }
 
 /*
-===============
-V_Q2_CalcBobNew
-Quake2 Viewbob.
-===============
-*/
-
-void V_Q2_CalcBobNew(struct ref_params_s* pparams, double time)
-{
-	int		i;
-	float	delta;
-	cl_entity_t *view, *ent;
-	static vec3_t oldv = { 0, 0, 0 };
-	static vec3_t v = { 0, 0, 0 };
-	static vec3_t prev_angles = { 0, 0, 0 };
-	static float nextthink;
-
-	ent = gEngfuncs.GetLocalPlayer();
-	view = gEngfuncs.GetViewModel();
-
-	if (!view)
-		return;
-
-	if ( nextthink <= time || nextthink - time > 0.1f)
-	{
-		oldv = v; // Interp. helps to add that weird jankiness
-		// Quake2's viewbob had... - serecky 9.8.25
-
-		// gun angles from bobbing
-		v[ROLL] = -xyspeed * bobfracsin * cl_gun_roll->value;
-		v[YAW] = xyspeed * bobfracsin * cl_gun_yaw->value;
-		if (bobcycle & 1)
-		{
-			v[ROLL] = -v[ROLL];
-			v[YAW] = -v[YAW];
-		}
-		v[PITCH] = -xyspeed * bobfracsin * cl_gun_pitch->value;
-
-		// gun angles from delta movement
-		for (i = 0; i < 3; i++)
-		{
-			delta = (prev_angles[i] - ent->curstate.angles[i]);
-			if (delta > 180)
-				delta -= 360;
-			if (delta < -180)
-				delta += 360;
-			if (delta > 45)
-				delta = 45;
-			if (delta < -45)
-				delta = -45;
-			if (i == YAW)
-				v[ROLL] += -0.1 * delta;
-			v[i] += 0.2 * delta;
-		}
-		VectorCopy(ent->angles, prev_angles);
-		nextthink = time + 0.1f;
-	}
-
- 	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("OLD: %.2f %.2f %.2f\n", oldv[0], oldv[1], oldv[2]));
-	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("new: %.2f %.2f %.2f\n", v[0], v[1], v[2]));
-
-	for (i = 0; i < 3; i++)
-		oldv[i] = LerpAngle(oldv[i], v[i], 1.0f - (nextthink - time) * 10.0f);
-
-	VectorAdd(oldv, view->angles, view->angles);
-	VectorCopy(view->angles, view->curstate.angles);
-}
-
-/*
 =================
 P_FallingDamage
 =================
@@ -543,7 +473,6 @@ void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 
 	static vec3_t oldv = { 0, 0, 0 };
 	static vec3_t v = { 0, 0, 0 };
-
 	static vec3_t oldangles = { 0, 0, 0 };
 	static vec3_t angles = { 0, 0, 0 };
 
@@ -554,9 +483,6 @@ void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 
 		// base angles
 		angles = kick_angles;
-
-		// clear weapon kicks
-		VectorClear(kick_angles);
 
 		// add angles based on damage kick
 		//ratio = (v_dmg_time - time) / DAMAGE_TIME;
@@ -623,9 +549,6 @@ void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 
 		VectorAdd(v, kick_origin, v);
 
-		// clear weapon kicks
-		VectorClear(kick_origin);
-
 		// absolutely bound offsets
 		// so the view can never be outside the player box
 
@@ -642,17 +565,90 @@ void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 		else if (v[2] > 30)
 			v[2] = 30;
 
+		// clear weapon kicks
+		VectorClear(kick_origin);
+		VectorClear(kick_angles);
+
 		nextthink = time + 0.1f;
 	}
 
 	for (i = 0; i < 3; i++)
 	{
-		oldangles[i] = LerpAngle(oldangles[i], angles[i], 1.0f - (nextthink - time) * 10.0f);
-		oldv[i] = LerpAngle(oldv[i], v[i], 1.0f - (nextthink - time) * 10.0f);
+		oldangles[i] = LerpAngle(oldangles[i], angles[i], pparams->frametime * 16.0f);
+		oldv[i] = LerpAngle(oldv[i], v[i], pparams->frametime * 16.0f);
 	}
 
 	VectorAdd(oldangles, pparams->viewangles, pparams->viewangles);
 	VectorAdd(oldv, pparams->viewheight, pparams->viewheight);
+}
+
+/*
+===============
+V_Q2_CalcBobNew
+Quake2 Viewbob.
+===============
+*/
+
+void V_Q2_CalcBobNew(struct ref_params_s* pparams, double time)
+{
+	int		i;
+	float	delta;
+	cl_entity_t* view, * ent;
+	static vec3_t oldv = { 0, 0, 0 };
+	static vec3_t v = { 0, 0, 0 };
+	static vec3_t prev_angles = { 0, 0, 0 };
+	static float nextthink;
+
+	ent = gEngfuncs.GetLocalPlayer();
+	view = gEngfuncs.GetViewModel();
+
+	if (!view)
+		return;
+
+	if (nextthink <= time || nextthink - time > 0.1f)
+	{
+		oldv = v; // Interp. helps to add that weird jankiness
+		// Quake2's viewbob had... - serecky 9.8.25
+
+		// gun angles from bobbing
+		v[ROLL] = -xyspeed * bobfracsin * cl_gun_roll->value;
+		v[YAW] = xyspeed * bobfracsin * cl_gun_yaw->value;
+		if (bobcycle & 1)
+		{
+			v[ROLL] = -v[ROLL];
+			v[YAW] = -v[YAW];
+		}
+		v[PITCH] = -xyspeed * bobfracsin * cl_gun_pitch->value;
+
+		// gun angles from delta movement
+		for (i = 0; i < 3; i++)
+		{
+			delta = (prev_angles[i] - ent->curstate.angles[i]);
+			if (delta > 180)
+				delta -= 360;
+			if (delta < -180)
+				delta += 360;
+			if (delta > 45)
+				delta = 45;
+			if (delta < -45)
+				delta = -45;
+			if (i == YAW)
+				v[ROLL] += -0.1 * delta;
+			v[i] += 0.2 * delta;
+		}
+		VectorCopy(ent->angles, prev_angles);
+		nextthink = time + 0.1f;
+	}
+
+	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("OLD: %.2f %.2f %.2f\n", oldv[0], oldv[1], oldv[2]));
+	//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("new: %.2f %.2f %.2f\n", v[0], v[1], v[2]));
+
+	for (i = 0; i < 3; i++)
+		oldv[i] = LerpAngle(oldv[i], v[i], pparams->frametime * 16.0f);
+
+	vec3_t viewangles = { -pparams->viewangles[0], pparams->viewangles[1], pparams->viewangles[2] };
+	VectorAdd(oldv, viewangles, view->angles);
+	VectorCopy(view->angles, view->curstate.angles);
 }
 
 /*

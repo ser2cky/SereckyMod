@@ -314,6 +314,7 @@ int CBasePlayer :: GiveAmmo( int iCount, char *szName, int iMax ) { return 0; }
 void CBasePlayer::AddPoints( int score, BOOL bAllowNegativeScore ) { } 
 void CBasePlayer::AddPointsToTeam( int score, BOOL bAllowNegativeScore ) { } 
 
+void P_ProjectSource(float* point, float* distance, float* forward, float* right, float* result) {};
 void ClearMultiDamage(void) { }
 void ApplyMultiDamage(entvars_t *pevInflictor, entvars_t *pevAttacker ) { }
 void AddMultiDamage( entvars_t *pevInflictor, CBaseEntity *pEntity, float flDamage, int bitsDamageType) { }

@@ -58,6 +58,18 @@ MULTIDAMAGE gMultiDamage;
 
 
 //=========================================================
+// P_ProjectSource - copied from Quake2. Projects
+// Anglevectors.
+//=========================================================
+
+void P_ProjectSource(float* point, float* distance, float* forward, float* right, float* result)
+{
+	result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];
+	result[1] = point[1] + forward[1] * distance[0] + right[1] * distance[1];
+	result[2] = point[2] + forward[2] * distance[0] + right[2] * distance[1] + distance[2];
+}
+
+//=========================================================
 // MaxAmmoCarry - pass in a name and this function will tell
 // you the maximum amount of that type of ammunition that a 
 // player can carry.

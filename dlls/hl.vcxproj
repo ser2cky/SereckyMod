@@ -279,6 +279,7 @@
     <ClCompile Include="wpn_shared\hl_wpn_tripmine.cpp" />
     <ClCompile Include="hl_mon_xen.cpp" />
     <ClCompile Include="hl_mon_zombie.cpp" />
+    <ClCompile Include="wpn_shared\q2_wpn_machinegun.cpp" />
     <ClCompile Include="wpn_shared\q2_wpn_railgun.cpp" />
   </ItemGroup>
   <ItemGroup>

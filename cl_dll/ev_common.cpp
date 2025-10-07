@@ -203,3 +203,33 @@ void EV_MuzzleFlash( void )
 	// Or in the muzzle flash
 	ent->curstate.effects |= EF_MUZZLEFLASH;
 }
+
+/*
+=================
+EV_WeaponAnimation
+
+Sends WeaponAnimation that gets blended.
+=================
+*/
+void EV_WeaponAnimation(int sequence, int body)
+{
+	cl_entity_t* view = gEngfuncs.GetViewModel();
+
+	view->latched.prevsequence = view->curstate.sequence;
+	gEngfuncs.pEventAPI->EV_WeaponAnimation(sequence, body);
+}
+
+/*
+=================
+EV_ProjectSource
+
+
+=================
+*/
+
+void EV_ProjectSource(float* point, float* distance, float* forward, float* right, float* result)
+{
+	result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];
+	result[1] = point[1] + forward[1] * distance[0] + right[1] * distance[1];
+	result[2] = point[2] + forward[2] * distance[0] + right[2] * distance[1] + distance[2];
+}

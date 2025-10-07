@@ -95,17 +95,10 @@ BOOL CQuake2Railgun::Deploy()
 PrimaryAttack
 ======================================
 */
-
 #define VectorSet(v, x, y, z)	(v[0]=(x), v[1]=(y), v[2]=(z))
-void P_ProjectSource(float* point, float* distance, float* forward, float* right, float* result)
-{
-	result[0] = point[0] + forward[0] * distance[0] + right[0] * distance[1];
-	result[1] = point[1] + forward[1] * distance[0] + right[1] * distance[1];
-	result[2] = point[2] + forward[2] * distance[0] + right[2] * distance[1] + distance[2];
-}
-
 void CQuake2Railgun::PrimaryAttack(void)
 {
+#ifndef CLIENT_DLL
 	vec3_t		start;
 	vec3_t		forward, right;
 	vec3_t		offset;
@@ -129,12 +122,13 @@ void CQuake2Railgun::PrimaryAttack(void)
 	//	kick *= 4;
 	//}
 
+
 	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
 
 	VectorSet(offset, 0, 7, m_pPlayer->pev->view_ofs[2] - 8);
 	P_ProjectSource(m_pPlayer->pev->origin, offset, gpGlobals->v_forward, gpGlobals->v_right, start);
 	Fire_Rail(start, gpGlobals->v_forward, damage);
-
+#endif
 	int flags;
 #if defined( CLIENT_WEAPONS )
 	flags = FEV_NOTHOST;
@@ -172,7 +166,7 @@ void CQuake2Railgun::Fire_Rail(vec3_t start, vec3_t aimdir, int damage)
 			ignore = NULL;
 
 		if ((tr.pHit != m_pPlayer->edict()) && (tr.pHit->v.takedamage))
-			CBaseEntity::Instance(tr.pHit)->TakeDamage(m_pPlayer->pev, m_pPlayer->pev, damage, DMG_BULLET);
+			CBaseEntity::Instance(tr.pHit)->TakeDamage(m_pPlayer->pev, m_pPlayer->pev, damage, DMG_GENERIC);
 	}
 
 	//if (self->client)
