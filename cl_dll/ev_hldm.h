@@ -68,6 +68,7 @@ void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName );
 void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, int iBulletType );
 int EV_HLDM_CheckTracer( int idx, float *vecSrc, float *end, float *forward, float *right, int iBulletType, int iTracerFreq, int *tracerCount );
 void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int cShots, float *vecSrc, float *vecDirShooting, float flDistance, int iBulletType, int iTracerFreq, int *tracerCount, float flSpreadX, float flSpreadY );
+void EV_Q2_FireBullets(int idx, float* start, float* aimdir, float* forward, float* right, float* up, int te_impact, int hspread, int vspread);
 
 void EV_FireGlock1(event_args_s* args);
 void EV_FireGlock2(event_args_s* args);

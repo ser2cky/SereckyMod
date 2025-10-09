@@ -35,6 +35,7 @@
 #include "r_studioint.h"
 #include "com_model.h"
 #include "particledan.h"
+#include "modelfx.h"
 
 extern engine_studio_api_t IEngineStudio;
 extern vec3_t v_angles;
@@ -266,8 +267,7 @@ void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName )
 	angles = v_angles;
 	AngleVectors(angles, forward, right, up);
 
-	//gEngfuncs.pEfxAPI->R_BulletImpactParticles( pTrace->endpos );
-
+	gEngfuncs.pEfxAPI->R_BulletImpactParticles( pTrace->endpos );
 	//EV_HLDM_ParticleTest(pTrace->endpos + forward * -16.0f);
 
 	iRand = gEngfuncs.pfnRandomLong(0,0x7FFF);
@@ -364,6 +364,36 @@ int EV_HLDM_CheckTracer( int idx, float *vecSrc, float *end, float *forward, flo
 	return tracer;
 }
 
+void EV_Q2_FireBullets(int idx, float *start, float *aimdir, float* forward, float* right, float* up, int te_impact, int hspread, int vspread)
+{
+	vec3_t		src, end;
+	pmtrace_t tr;
+	int i;
+
+	for (i = 0; i < 3; i++)
+	{
+		src[i] = start[i] + aimdir[i];
+		end[i] = start[i] + aimdir[i] + 8192 * forward[i]
+			+ hspread * right[i] + vspread * up[i];
+	}
+
+	gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction(false, true);
+
+	gEngfuncs.pEventAPI->EV_PushPMStates();
+
+	gEngfuncs.pEventAPI->EV_SetSolidPlayers(idx - 1);
+
+	gEngfuncs.pEventAPI->EV_SetTraceHull(2);
+	gEngfuncs.pEventAPI->EV_PlayerTrace(src, end, PM_STUDIO_BOX, -1, &tr);
+
+	if (tr.fraction != 1.0)
+	{
+		CL_SmokeAndFlash(tr.endpos);
+		R_ParticleEffect(tr.endpos, vec3_origin, 0, 40);
+	}
+
+	gEngfuncs.pEventAPI->EV_PopPMStates();
+}
 
 /*
 ================

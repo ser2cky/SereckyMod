@@ -21,6 +21,7 @@
 #include "pm_shared.h"
 #include "com_model.h"
 #include "particledan.h"
+#include "modelfx.h"
 
 #define DLLEXPORT __declspec( dllexport )
 
@@ -674,6 +675,8 @@ void DLLEXPORT HUD_CreateEntities( void )
 #if defined( BEAM_TEST )
 	Beams();
 #endif
+
+	CL_AddTEnts();
 
 	// Add in any game specific objects
 	Game_AddObjects();

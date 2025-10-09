@@ -36,6 +36,7 @@ typedef struct particledan_s
 	vec3_t		org;			// Origin of particles.
 	vec3_t		vel;			// Velocity of particles.
 	vec3_t		color;			// Color of particles. Must be divided by 255!
+	vec3_t		accel;			// Particle acceleration in specified dir. Can also replace gravity...
 	float		alpha;			// Alpha/Transparency of particles. Must be divided by 255!
 	float		brightness;		// Color multiplier for particles.
 
@@ -62,8 +63,6 @@ typedef struct particledan_s
 	float		nextanimate;			// Timer for next time something animates.
 	float		scale_time;				// frametime scaling.
 	float		alpha_time;				// frametime alpha values.
-	float		part_freq;				// freq of particles...
-	vec3_t		oldorg;					// OLD ORIGIN
 } particledan_t;
 
 class CParticleDan

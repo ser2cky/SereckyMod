@@ -186,7 +186,7 @@ int gmsgTeamNames = 0;
 
 int gmsgStatusText = 0;
 int gmsgStatusValue = 0; 
-
+int gmsgWeaponAnim = 0;
 
 
 void LinkUserMessages( void )
@@ -234,11 +234,18 @@ void LinkUserMessages( void )
 	gmsgStatusText = REG_USER_MSG("StatusText", -1);
 	gmsgStatusValue = REG_USER_MSG("StatusValue", 3); 
 
+	gmsgWeaponAnim = REG_USER_MSG("SendAnim", 2);
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
 
-
+void SendWeaponAnimMSG(entvars_t* pev, int iAnim, int body)
+{
+	MESSAGE_BEGIN(MSG_ONE, gmsgWeaponAnim, NULL, pev);
+		WRITE_BYTE(iAnim);	// sequence number
+		WRITE_BYTE(body);	// weaponmodel bodygroup.
+	MESSAGE_END();
+}
 
 void CBasePlayer :: Pain( void )
 {

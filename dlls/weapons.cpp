@@ -875,7 +875,7 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer )
 	return 1;
 }
 
-
+extern int gmsgWeaponAnim;
 void CBasePlayerWeapon::SendWeaponAnim( int iAnim, int skiplocal, int body )
 {
 	if ( UseDecrement() )
@@ -890,7 +890,7 @@ void CBasePlayerWeapon::SendWeaponAnim( int iAnim, int skiplocal, int body )
 		return;
 #endif
 
-	MESSAGE_BEGIN( MSG_ONE, SVC_WEAPONANIM, NULL, m_pPlayer->pev );
+	MESSAGE_BEGIN( MSG_ONE, gmsgWeaponAnim, NULL, m_pPlayer->pev );
 		WRITE_BYTE( iAnim );						// sequence number
 		WRITE_BYTE( pev->body );					// weaponmodel bodygroup.
 	MESSAGE_END();

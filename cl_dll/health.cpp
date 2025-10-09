@@ -214,7 +214,7 @@ int CHudHealth::Draw(float flTime)
 		x = CrossWidth /2;
 
 		SPR_Set(gHUD.GetSprite(m_HUD_cross), r, g, b);
-		SPR_DrawAdditive(0, 0, 0, &gHUD.GetSpriteRect(m_HUD_cross));
+		SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_cross));
 
 		x = CrossWidth + HealthWidth / 2;
 

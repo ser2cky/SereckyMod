@@ -105,13 +105,16 @@ This is an internal support routine used for bullet/pellet based weapons.
 =================
 */
 
-Vector fire_lead(edict_t* self, vec3_t start, vec3_t aimdir, int damage, int kick, int te_impact, int hspread, int vspread)
+Vector fire_lead(edict_t* self, vec3_t start, vec3_t aimdir, int damage, int kick, int hspread, int vspread)
 {
 	vec3_t		dir, end;
 	vec3_t		forward = gpGlobals->v_forward;
 	vec3_t		right = gpGlobals->v_right;
 	vec3_t		up = gpGlobals->v_up;
 	float		r, u;
+
+#ifndef CLIENT_DLL
+
 	TraceResult tr;
 
 	r = RANDOM_FLOAT(-1.0f, 1.0f) * hspread;
@@ -124,27 +127,17 @@ Vector fire_lead(edict_t* self, vec3_t start, vec3_t aimdir, int damage, int kic
 
 	if (tr.flFraction < 1.0)
 	{
-		if (tr.pHit->v.takedamage)
+		if ((tr.pHit != nullptr) && (tr.pHit->v.takedamage))
 		{
-			
-		}
-		else
-		{
-			MESSAGE_BEGIN(MSG_PVS, SVC_TEMPENTITY, tr.vecEndPos);
-			WRITE_BYTE(TE_SPARKS);
-			WRITE_COORD(tr.vecEndPos.x);
-			WRITE_COORD(tr.vecEndPos.y);
-			WRITE_COORD(tr.vecEndPos.z);
-			MESSAGE_END();
+			ClearMultiDamage();
+			gMultiDamage.type = DMG_BULLET;
+			CBaseEntity::Instance(tr.pHit)->TraceAttack(VARS(self), damage, aimdir, &tr, DMG_BULLET);
+			ApplyMultiDamage(VARS(self), VARS(self));
 		}
 	}
+#endif // !CLIENT_DLL
 
 	return Vector(r, u, 0.0);
-}
-
-void fire_bullet(edict_t* self, vec3_t start, vec3_t aimdir, int damage, int kick, int hspread, int vspread)
-{
-	fire_lead(self, start, aimdir, damage, kick, TE_GUNSHOT, hspread, vspread);
 }
 
 #define DEFAULT_BULLET_HSPREAD	300
@@ -152,20 +145,25 @@ void fire_bullet(edict_t* self, vec3_t start, vec3_t aimdir, int damage, int kic
 void CQuake2MachineGun::PrimaryAttack(void)
 {
 	Vector offset, start;
+	int flags, i;
 
-	int flags;
 #if defined( CLIENT_WEAPONS )
 	flags = FEV_NOTHOST;
 #else
 	flags = 0;
 #endif
-	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle);
 	VectorSet(offset, 0, 8, m_pPlayer->pev->view_ofs[2] - 8);
 
 	P_ProjectSource(m_pPlayer->pev->origin, offset, gpGlobals->v_forward, gpGlobals->v_right, start);
-	fire_bullet(m_pPlayer->edict(), start, gpGlobals->v_forward, 2, 8, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD);
+	Vector spread = fire_lead(m_pPlayer->edict(), start, gpGlobals->v_forward, 8, 2, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD);
 
-	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usFireMachinegun, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, g_vecZero.x, g_vecZero.y, machinegun_shots, 0, 0, 0);
+	PLAYBACK_EVENT_FULL(flags, m_pPlayer->edict(), m_usFireMachinegun, 0.0, (float*)&g_vecZero, (float*)&g_vecZero, spread.x, spread.y, machinegun_shots, 0, 0, 0);
+
+	for (i = 1; i < 3; i++)
+		m_pPlayer->pev->punchangle[i] = RANDOM_FLOAT(-1.0f, 1.0f) * 0.7f;
+	m_pPlayer->pev->punchangle[0] = machinegun_shots * -1.5f;
 
 	// raise the gun as it is firing
 	if (!gpGlobals->deathmatch)
@@ -188,7 +186,10 @@ ItemPostFrame
 void CQuake2MachineGun::ItemPostFrame(void)
 {
 	if (!(m_pPlayer->pev->button & IN_ATTACK))
+	{
 		machinegun_shots = 0;
+		m_pPlayer->pev->punchangle = g_vecZero;
+	}
 
 	CBasePlayerWeapon::ItemPostFrame();
 }

@@ -30,6 +30,7 @@
 #include "demo.h"
 #include "demo_api.h"
 #include "vgui_scorepanel.h"
+#include "modelfx.h"
 
 
 
@@ -264,7 +265,12 @@ int __MsgFunc_AllowSpec(const char *pszName, int iSize, void *pbuf)
 		return gViewPort->MsgFunc_AllowSpec( pszName, iSize, pbuf );
 	return 0;
 }
- 
+
+int __MsgFunc_SendAnim(const char *pszName, int iSize, void *pbuf)
+{
+	return gHUD.MsgFunc_SendAnim(pszName, iSize, pbuf);
+}
+
 // This is called every time the DLL is loaded
 void CHud :: Init( void )
 {
@@ -275,6 +281,7 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( ViewMode );
 	HOOK_MESSAGE( SetFOV );
 	HOOK_MESSAGE( Concuss );
+	HOOK_MESSAGE( SendAnim );
 
 	// TFFree CommandMenu
 	HOOK_COMMAND( "+commandmenu", OpenCommandMenu );
@@ -349,6 +356,8 @@ void CHud :: Init( void )
 	m_StatusIcons.Init();
 	m_ParticleDan.Init();
 	m_SpriteObject.Init();
+
+
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 
 	m_Menu.Init();
@@ -379,6 +388,7 @@ CHud :: ~CHud()
 	}
 	m_ParticleDan.Shutdown();
 	m_SpriteObject.Shutdown();
+	CL_ClearTEnts();
 	ServersShutdown();
 }
 
@@ -500,6 +510,8 @@ void CHud :: VidInit( void )
 	m_StatusIcons.VidInit();
 	m_ParticleDan.VidInit();
 	m_SpriteObject.VidInit();
+	CL_ClearTEnts();
+
 	GetClientVoiceMgr()->VidInit();
 }
 

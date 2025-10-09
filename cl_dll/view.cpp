@@ -136,6 +136,9 @@ float		client_bobtime = 0.0f;
 float		v_dmg_roll, v_dmg_pitch, v_dmg_time;	// damage kicks
 static float fall_time, fall_value;		// for view drop on fall
 
+static float lerpPunch[3];
+static float ev_lerpPunch[3];
+
 cvar_t		*cl_gun_roll;
 cvar_t		*cl_gun_yaw;
 cvar_t		*cl_gun_pitch;
@@ -464,17 +467,20 @@ V_Q2_CalcViewOffset
 Quake2 Camerabob.
 ===================
 */
-
+vec3_t punchangle;
 void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 {
 	float		bob, delta, ratio;
 	static float nextthink = 0.0f;
 	int i;
 
-	static vec3_t oldv = { 0, 0, 0 };
-	static vec3_t v = { 0, 0, 0 };
-	static vec3_t oldangles = { 0, 0, 0 };
-	static vec3_t angles = { 0, 0, 0 };
+	static vec3_t oldv;
+	static vec3_t oldangles;
+
+	static vec3_t v;
+	static vec3_t angles;
+
+	cl_entity_t* ent = gEngfuncs.GetLocalPlayer();
 
 	if ( nextthink <= time || nextthink - time > 0.1f )
 	{
@@ -482,7 +488,8 @@ void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 		oldangles = angles;
 
 		// base angles
-		angles = kick_angles;
+		angles = pparams->punchangle;
+		angles = angles + kick_angles;
 
 		// add angles based on damage kick
 		//ratio = (v_dmg_time - time) / DAMAGE_TIME;
@@ -568,6 +575,7 @@ void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 		// clear weapon kicks
 		VectorClear(kick_origin);
 		VectorClear(kick_angles);
+		VectorClear(pparams->punchangle);
 
 		nextthink = time + 0.1f;
 	}
@@ -1235,25 +1243,26 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 // Q2/Q3 View-bob and Gun-bob end.
 
 	// Add in the punchangle, if any
-
-	static float lerpPunch[3] = { 0, 0, 0 };
-	static float ev_lerpPunch[3] = { 0, 0, 0 };
-
-	if (pparams->punchangle || ev_punchangle)
+#if 0
+	for (i = 0; i < 3; i++)
 	{
-		for (i = 0; i < 3; i++)
-		{
-			lerpPunch[i] = Interpolate(lerpPunch[i], pparams->punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
-			ev_lerpPunch[i] = Interpolate(ev_lerpPunch[i], ev_punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
-		}
-
-		VectorAdd(pparams->viewangles, lerpPunch, pparams->viewangles);
-
-		// Include client side punch, too
-		VectorAdd(pparams->viewangles, ev_lerpPunch, pparams->viewangles);
-
-		V_DropPunchAngle(pparams->frametime, (float*)&ev_punchangle);
+		lerpPunch[i] = Interpolate(lerpPunch[i], pparams->punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
+		ev_lerpPunch[i] = Interpolate(ev_lerpPunch[i], ev_punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
 	}
+
+	VectorAdd(pparams->viewangles, lerpPunch, pparams->viewangles);
+
+	// Include client side punch, too
+	VectorAdd(pparams->viewangles, ev_lerpPunch, pparams->viewangles);
+
+	V_DropPunchAngle(pparams->frametime, (float*)&ev_punchangle);
+
+#endif
+
+	// Include client side punch, too
+	VectorAdd(pparams->viewangles, ev_punchangle, pparams->viewangles);
+
+	V_DropPunchAngle(pparams->frametime, (float*)&ev_punchangle);
 
 	// smooth out stair step ups
 #if 1
@@ -2237,13 +2246,19 @@ for Quake2!!!
 */
 void V_Q2Punch(float* kick_org, float* kick_ang)
 {
-	kick_origin[0] = kick_org[0];
-	kick_origin[1] = kick_org[1];
-	kick_origin[2] = kick_org[2];
+	if (kick_org != nullptr)
+	{
+		kick_origin[0] = kick_org[0];
+		kick_origin[1] = kick_org[1];
+		kick_origin[2] = kick_org[2];
+	}
 
-	kick_angles[0] = kick_ang[0];
-	kick_angles[1] = kick_ang[1];
-	kick_angles[2] = kick_ang[2];
+	if (kick_ang != nullptr)
+	{
+		kick_angles[0] = kick_ang[0];
+		kick_angles[1] = kick_ang[1];
+		kick_angles[2] = kick_ang[2];
+	}
 }
 
 /*

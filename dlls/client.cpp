@@ -751,6 +751,10 @@ void ClientPrecache( void )
 	PRECACHE_SOUND("player/geiger2.wav");
 	PRECACHE_SOUND("player/geiger1.wav");
 
+	// client models
+
+	PRECACHE_MODEL("models/smoke.mdl");
+
 	if (giPrecacheGrunt)
 		UTIL_PrecacheOther("monster_human_grunt");
 	UTIL_PrecacheOther("car");

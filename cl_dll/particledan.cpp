@@ -159,6 +159,7 @@ particledan_t* CParticleDan::AllocParticle(void)
 	// clear old particle
 	VectorClear(p->vel);
 	VectorClear(p->org);
+	VectorClear(p->accel);
 	p->die = gEngfuncs.GetClientTime();
 	p->model = NULL;
 	p->rendermode = 0;
@@ -183,7 +184,6 @@ particledan_t* CParticleDan::AllocParticle(void)
 	p->scale_keyframe[1] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 	p->growth_max = {0.0f, 0.0f};
 
-	p->part_freq = 0.0f;
 	p->flags = 0;
 	return p;
 }
@@ -201,15 +201,6 @@ AllocParticleDelay
 particledan_t* CParticleDan::AllocParticleDelay(float delay)
 {
 	particledan_t* p = AllocParticle();
-
-	if (p)
-	{
-		if (p->part_freq < gEngfuncs.GetClientTime() || p->part_freq - gEngfuncs.GetClientTime() > delay)
-		{
-			p->part_freq = gEngfuncs.GetClientTime() + delay;
-			return p;
-		}
-	}
 
 	return NULL;
 }
@@ -334,9 +325,9 @@ void CParticleDan::ParticleThink(float frametime, float realtime)
 			}
 		}
 
-		p->org[0] += p->vel[0] * frametime;
-		p->org[1] += p->vel[1] * frametime;
-		p->org[2] += p->vel[2] * frametime;
+		p->org[0] += p->vel[0] * frametime + p->accel[0] * frametime;
+		p->org[1] += p->vel[1] * frametime + p->accel[1] * frametime;
+		p->org[2] += p->vel[2] * frametime + p->accel[2] * frametime;
 
 		//gEngfuncs.pfnConsolePrint(UTIL_VarArgs("new: %.2f %.2f %.2f\n", p->org[0], p->org[1], p->org[2]));
 	}

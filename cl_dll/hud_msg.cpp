@@ -118,3 +118,19 @@ int CHud :: MsgFunc_Concuss( const char *pszName, int iSize, void *pbuf )
 		this->m_StatusIcons.DisableIcon("dmg_concuss");
 	return 1;
 }
+
+int CHud::MsgFunc_SendAnim(const char* pszName, int iSize, void* pbuf)
+{
+	BEGIN_READ(pbuf, iSize);
+
+	int iAnim = READ_BYTE();
+	int body = READ_BYTE();
+
+	cl_entity_t* view = gEngfuncs.GetViewModel();
+
+	// Tell animation system new info
+	view->latched.prevsequence = view->curstate.sequence;
+	gEngfuncs.pfnWeaponAnim(iAnim, body);
+
+	return 1;
+}

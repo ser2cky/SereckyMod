@@ -20,16 +20,24 @@
 #include "particledan.h"
 #include "r_efx.h"
 #include "modelfx.h"
+#include "entity_types.h"
+#include "r_studioint.h"
 
+extern engine_studio_api_t IEngineStudio;
+extern float v_frametime;
+
+#define	PARTICLE_GRAVITY	40
 /*
 =============================================
 	modelfx.cpp
 
 	Effects that I can reuse pretty much
-	everywhere.
+	everywhere. This file will be super large,
+	so yeah!!
 
 	History:
 	10/4/25: Created.
+	10/8/25: Added smoke fx from Quake2
 =============================================
 */
 
@@ -75,7 +83,6 @@ vec3_t q2pal[256] = { {0, 0, 0}, { 15, 15, 15 }, { 31, 31, 31 }, { 47, 47, 47 },
  { 47, 0, 0 }, { 27, 0, 0 }, { 239, 0, 0 }, { 55, 55, 255 }, { 255, 0, 0 }, { 0, 0, 255 }, { 43, 43, 35 }, { 27, 27, 23 },
  { 19, 19, 15 }, { 235, 151, 127 }, { 195, 115, 83 }, { 159, 87, 51 }, { 123, 63, 27 }, { 235, 211, 199 }, { 199, 171, 155 },
  { 167, 139, 119 }, { 135, 107, 87 }, { 159, 91, 83 } };
-
 
 static int	ramp1[8] = { 0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61 };
 static int	ramp2[8] = { 0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66 };
@@ -537,7 +544,7 @@ void R_RailTrail(vec3_t start, vec3_t end, vec3_t angles)
 		if (!p)
 			return;
 
-		p->die = gEngfuncs.GetClientTime() + 1.0f;
+		p->die = gEngfuncs.GetClientTime() + 1.5f;
 		p->flags = PDAN_QUAKE;
 
 		d = i * 0.1f;
@@ -573,7 +580,7 @@ void R_RailTrail(vec3_t start, vec3_t end, vec3_t angles)
 		if (!p)
 			return;
 
-		p->die = gEngfuncs.GetClientTime() + 1.0f;
+		p->die = gEngfuncs.GetClientTime() + 1.5f;
 		p->flags = PDAN_QUAKE;
 
 		VectorClear(p->vel);
@@ -590,4 +597,386 @@ void R_RailTrail(vec3_t start, vec3_t end, vec3_t angles)
 		}
 		VectorAdd(move, vec, move);
 	}
+}
+
+//============================================
+//	R_ParticleEffect
+//	From Quake2.
+// 
+//	Wall impact puffs
+//============================================
+
+void R_ParticleEffect(vec3_t org, vec3_t dir, int color, int count)
+{
+	int			i, j;
+	particledan_t* p;
+	float		d;
+
+	for (i = 0; i < count; i++)
+	{
+		p = gHUD.m_ParticleDan.AllocParticle();
+
+		if (!p)
+			return;
+
+		p->die = gEngfuncs.GetClientTime() + 1.5f;
+		p->flags = PDAN_QUAKE;
+
+		p->color = q2pal[color + (rand() & 7)];
+		p->color = p->color / 255.0f;
+
+		d = rand() & 31;
+		for (j = 0; j < 3; j++)
+		{
+			p->org[j] = org[j] + ((rand() & 7) - 4) + d * dir[j];
+			p->vel[j] = gEngfuncs.pfnRandomLong(-1.0f, 1.0f) * 20;
+		}
+
+		p->accel[0] = p->accel[1] = 0;
+		p->accel[2] = -PARTICLE_GRAVITY;
+		p->alpha = 1.0;
+
+		p->alpha_step = -1.0 / (0.5 + gEngfuncs.pfnRandomLong(0.0f, 0.3f));
+	}
+}
+
+//============================================
+//	R_ParseMuzzleFlash
+//	From Quake2.
+//============================================
+
+void R_ParseMuzzleFlash(int weapon, vec3_t angles, vec3_t origin)
+{
+	vec3_t forward, right;
+
+	dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
+	VectorCopy(origin, dl->origin);
+	AngleVectors(angles, forward, right, NULL);
+	VectorMA(dl->origin, 18, forward, dl->origin);
+	VectorMA(dl->origin, 16, right, dl->origin);
+
+	dl->radius = 200 + (rand() & 31);
+	dl->minlight = 32;
+	dl->die = gEngfuncs.GetClientTime();
+
+	switch (weapon)
+	{
+	case MZ_BLASTER:
+		dl->color.r = 255; dl->color.g = 255; dl->color.b = 0;
+		break;
+	case MZ_HYPERBLASTER:
+		dl->color.r = 255; dl->color.g = 255; dl->color.b = 0;
+		break;
+	case MZ_MACHINEGUN:
+		dl->color.r = 255; dl->color.g = 255; dl->color.b = 0;
+		break;
+	case MZ_SHOTGUN:
+		dl->color.r = 255; dl->color.g = 255; dl->color.b = 0;
+		break;
+	case MZ_SSHOTGUN:
+		dl->color.r = 255; dl->color.g = 255; dl->color.b = 0;
+		break;
+	case MZ_CHAINGUN1:
+		dl->radius = 200 + (rand() & 31);
+		dl->color.r = 255; dl->color.g = 64; dl->color.b = 0;
+		break;
+	case MZ_CHAINGUN2:
+		dl->radius = 225 + (rand() & 31);
+		dl->color.r = 255; dl->color.g = 128; dl->color.b = 0;
+		dl->die = gEngfuncs.GetClientTime() + 0.1;	// long delay
+		break;
+	case MZ_CHAINGUN3:
+		dl->radius = 250 + (rand() & 31);
+		dl->color.r = 255; dl->color.g = 255; dl->color.b = 0;
+		dl->die = gEngfuncs.GetClientTime() + 0.1;	// long delay
+		break;
+	case MZ_RAILGUN:
+		dl->color.r = 128; dl->color.g = 128; dl->color.b = 255;
+		break;
+	case MZ_ROCKET:
+		dl->color.r = 255; dl->color.g = 128; dl->color.b = 51;
+		break;
+	case MZ_GRENADE:
+		dl->color.r = 255; dl->color.g = 128; dl->color.b = 0;
+		break;
+	case MZ_BFG:
+		dl->color.r = 0; dl->color.g = 255; dl->color.b = 0;
+		break;
+
+	case MZ_LOGIN:
+		dl->color.r = 0; dl->color.g = 255; dl->color.b = 0;
+		dl->die = gEngfuncs.GetClientTime() + 1.0;
+		//CL_LogoutEffect(pl->current.origin, weapon);
+		break;
+	case MZ_LOGOUT:
+		dl->color.r = 255; dl->color.g = 0; dl->color.b = 0;
+		dl->die = gEngfuncs.GetClientTime() + 1.0;
+		//CL_LogoutEffect(pl->current.origin, weapon);
+		break;
+	case MZ_RESPAWN:
+		dl->color.r = 255; dl->color.g = 255; dl->color.b = 0;
+		dl->die = gEngfuncs.GetClientTime() + 1.0;
+		//CL_LogoutEffect(pl->current.origin, weapon);
+		break;
+	}
+}
+
+// struct copied from "cl_tent.c" of quake2
+
+typedef enum
+{
+	ex_free, ex_explosion, ex_misc, ex_flash, ex_mflash, ex_poly, ex_poly2
+} exptype_t;
+
+typedef struct
+{
+	exptype_t	type;
+	cl_entity_t	ent;
+
+	int			frames;
+	float		light;
+	vec3_t		lightcolor;
+	float		start;
+	int			baseframe;
+	int			modelindex;
+} explosion_t;
+
+#define	MAX_EXPLOSIONS	32
+explosion_t	cl_explosions[MAX_EXPLOSIONS];
+
+/*
+=================
+CL_ClearTEnts
+
+From Quake2.
+=================
+*/
+void CL_ClearTEnts(void)
+{
+	//memset(cl_beams, 0, sizeof(cl_beams));
+	memset(cl_explosions, 0, sizeof(cl_explosions));
+	//memset(cl_lasers, 0, sizeof(cl_lasers));
+
+	//ROGUE
+	/*memset(cl_playerbeams, 0, sizeof(cl_playerbeams));
+	memset(cl_sustains, 0, sizeof(cl_sustains));*/
+	//ROGUE
+}
+
+/*
+=================
+CL_AllocExplosion
+
+From Quake2.
+=================
+*/
+explosion_t* CL_AllocExplosion(void)
+{
+	int		i;
+	int		time;
+	int		index;
+
+	for (i = 0; i < MAX_EXPLOSIONS; i++)
+	{
+		if (cl_explosions[i].type == ex_free)
+		{
+			memset(&cl_explosions[i], 0, sizeof(cl_explosions[i]));
+			return &cl_explosions[i];
+		}
+	}
+	// find the oldest explosion
+	time = gEngfuncs.GetClientTime();
+	index = 0;
+
+	for (i = 0; i < MAX_EXPLOSIONS; i++)
+	{
+		if (cl_explosions[i].start < time)
+		{
+			time = cl_explosions[i].start;
+			index = i;
+		}
+	}
+	memset(&cl_explosions[index], 0, sizeof(cl_explosions[index]));
+	return &cl_explosions[index];
+}
+
+/*
+=================
+CL_SmokeAndFlash
+
+From Quake2.
+=================
+*/
+static int int_time = 0;
+
+void CL_SmokeAndFlash(vec3_t origin)
+{
+	explosion_t* ex;
+
+	struct model_s* mod;
+	int modelindex;
+
+	mod = gEngfuncs.CL_LoadModel("models/smoke.mdl", &modelindex);
+	if (!mod)
+		return;
+
+	ex = CL_AllocExplosion();
+
+	if (ex)
+	{
+		VectorCopy(origin, ex->ent.origin);
+		ex->ent.curstate.origin = ex->ent.origin;
+		ex->type = ex_misc;
+		ex->frames = 4;
+		ex->start = int_time - 100;
+		ex->ent.curstate.animtime = gEngfuncs.GetClientTime() + 0.001f;
+		ex->ent.curstate.sequence = 0;
+		ex->ent.curstate.frame = 0;
+		ex->ent.curstate.framerate = 1.0f;
+		ex->ent.model = mod;
+		ex->modelindex = modelindex;
+	}
+
+	//ex = CL_AllocExplosion();
+	//VectorCopy(origin, ex->ent.origin);
+	//ex->type = ex_flash;
+	//ex->ent.curstate.renderfx = kRenderGlow;
+	//ex->frames = 2;
+	//ex->start = gEngfuncs.GetClientTime() - 100;
+	//ex->ent.model = (model_s*)"models/smoke.mdl";
+	// get new model soon bruh
+}
+
+/*
+=================
+CL_AddExplosions
+
+From Quake2.
+=================
+*/
+
+static cl_entity_t r_entities[128];
+int r_numentities;
+
+void CL_AddExplosions(void)
+{
+	cl_entity_t* ent = &r_entities[r_numentities++];
+	int			i;
+	explosion_t* ex;
+	float		frac;
+	int			f;
+
+	memset(&ent, 0, sizeof(ent));
+
+	for (i = 0, ex = cl_explosions; i < MAX_EXPLOSIONS; i++, ex++)
+	{
+		if (ex->type == ex_free)
+			continue;
+
+		frac = (int_time - ex->start) / 100.0f;
+		f = floor(frac);
+		ent = &ex->ent;
+
+		ent->curstate.origin = ent->origin;
+		ent->model = IEngineStudio.GetModelByIndex(ex->modelindex);
+		ent->curstate.modelindex = ex->modelindex;
+		ent->curstate.rendermode = kRenderTransAlpha;
+
+		switch (ex->type)
+		{
+		case ex_mflash:
+			if (f >= ex->frames - 1)
+				ex->type = ex_free;
+			break;
+		case ex_misc:
+			if (f >= ex->frames - 1)
+			{
+				ex->type = ex_free;
+				break;
+			}
+			ent->curstate.renderamt = (1.0 - frac / (ex->frames - 1)) * 255.0f;;
+			break;
+		case ex_flash:
+			if (f >= 1)
+			{
+				ex->type = ex_free;
+				break;
+			}
+			ent->curstate.renderamt = 1.0;
+			ent->curstate.renderamt *= 255.0f;
+			break;
+		case ex_poly:
+			if (f >= ex->frames - 1)
+			{
+				ex->type = ex_free;
+				break;
+			}
+
+			ent->curstate.renderamt = (16.0 - (float)f) / 16.0;
+			ent->curstate.renderamt *= 255.0f;
+
+			if (f < 10)
+			{
+				ent->curstate.skin = (f >> 1);
+				if (ent->curstate.skin < 0)
+					ent->curstate.skin = 0;
+			}
+			else
+			{
+				//ent->flags |= RF_TRANSLUCENT;
+				if (f < 13)
+					ent->curstate.skin = 5;
+				else
+					ent->curstate.skin = 6;
+			}
+			break;
+		case ex_poly2:
+			if (f >= ex->frames - 1)
+			{
+				ex->type = ex_free;
+				break;
+			}
+
+			ent->curstate.renderamt = (5.0 - (float)f) / 5.0;
+			ent->curstate.renderamt *= 255.0f;
+			ent->curstate.skin = 0;
+			//ent->flags |= RF_TRANSLUCENT;
+			break;
+		}
+
+		if (ex->type == ex_free)
+			continue;
+
+		if (ex->light)
+		{
+			/*V_AddLight(ent->origin, ex->light * ent->alpha,
+				ex->lightcolor[0], ex->lightcolor[1], ex->lightcolor[2]);*/
+		}
+
+		VectorCopy(ent->origin, ent->prevstate.origin);
+
+		if (f < 0)
+			f = 0;
+
+		if (ex->frames)
+			gEngfuncs.pfnConsolePrint(UTIL_VarArgs("Coord: %.2f %.2f %.2f\nModelIndex: %d\n", ent->origin.x, ent->origin.y, ent->origin.z, ex->modelindex));
+
+		gEngfuncs.CL_CreateVisibleEntity(ET_NORMAL, ent);
+	}
+}
+
+/*
+=================
+CL_AddTEnts
+=================
+*/
+
+void CL_AddTEnts(void)
+{
+	int_time = gEngfuncs.GetClientTime() * 1000.0f;
+
+
+	r_numentities = 0;
+
+	CL_AddExplosions();
 }
