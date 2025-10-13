@@ -271,6 +271,16 @@ int __MsgFunc_SendAnim(const char *pszName, int iSize, void *pbuf)
 	return gHUD.MsgFunc_SendAnim(pszName, iSize, pbuf);
 }
 
+int __MsgFunc_Q1ParseTEnt(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_Q1ParseTEnt(pszName, iSize, pbuf);
+}
+
+int __MsgFunc_QParticle(const char* pszName, int iSize, void* pbuf)
+{
+	return gHUD.MsgFunc_ParseParticleEffect(pszName, iSize, pbuf);
+}
+
 // This is called every time the DLL is loaded
 void CHud :: Init( void )
 {
@@ -282,6 +292,8 @@ void CHud :: Init( void )
 	HOOK_MESSAGE( SetFOV );
 	HOOK_MESSAGE( Concuss );
 	HOOK_MESSAGE( SendAnim );
+	HOOK_MESSAGE( Q1ParseTEnt );
+	HOOK_MESSAGE( QParticle );
 
 	// TFFree CommandMenu
 	HOOK_COMMAND( "+commandmenu", OpenCommandMenu );

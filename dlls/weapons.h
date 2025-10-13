@@ -96,6 +96,8 @@ public:
 #define WEAPON_RAILGUN			16
 #define WEAPON_FLAREGUN			17
 #define WEAPON_MACHINEGUN		18
+#define WEAPON_Q1SSHOT			19
+#define WEAPON_Q1ROCKET			20
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -122,6 +124,7 @@ public:
 #define SNARK_WEIGHT		5
 #define SATCHEL_WEIGHT		-10
 #define TRIPMINE_WEIGHT		-10
+#define Q1SSHOT_WEIGHT		15
 
 #define RAILGUN_WEIGHT		20
 #define MACHINEGUN_WEIGHT	10
@@ -181,9 +184,9 @@ public:
 #define TRIPMINE_DEFAULT_GIVE		1
 #define SNARK_DEFAULT_GIVE			5
 #define HIVEHAND_DEFAULT_GIVE		8
-
 #define RAILGUN_DEFAULT_GIVE		25
 #define FLAREGUN_DEFAULT_GIVE		5
+#define Q1SSHOT_DEFAULT_GIVE		25
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -345,7 +348,7 @@ public:
 
 	virtual BOOL CanDeploy( void );
 	virtual BOOL IsUseable( void );
-	BOOL DefaultDeploy( char *szViewModel, char *szWeaponModel, int iAnim, char *szAnimExt, int skiplocal = 0, int body = 0 );
+	BOOL DefaultDeploy( char *szViewModel, char *szWeaponModel, int iAnim, char *szAnimExt, int skiplocal = 0, int body = 0, float fDelay = 0.5f, float fIdle = 1.0f );
 	int DefaultReload( int iClipSize, int iAnim, float fDelay, int body = 0 );
 
 	virtual void ItemPostFrame( void );	// called each frame by the player PostThink
@@ -1185,6 +1188,65 @@ private:
 	unsigned short m_usFireMachinegun;
 };
 
+class CBaseQuakeWeapon : public CBasePlayerWeapon
+{
+public:
+	virtual void Precache(void);
+	BOOL CanHolster(void) { if (m_flNextPrimaryAttack < UTIL_WeaponTimeBase()) return TRUE; return FALSE; };
+	virtual void W_FireAxe(void);
+	virtual void W_FireShotgun(void);
+	virtual void W_FireSuperShotgun(void);
+	virtual void W_FireRocket(void);
+	void EXPORT T_MissileTouch(CBaseEntity* pOther);
+	void BecomeExplosion(void);
+};
+
+class C_Q1SuperShot : public CBaseQuakeWeapon
+{
+public:
+	void Spawn(void);
+	void Precache(void) override;
+	int iItemSlot(void) { return 0; }
+	int GetItemInfo(ItemInfo* p);
+
+	BOOL Deploy(void);
+	void PrimaryAttack(void);
+
+	virtual BOOL UseDecrement(void)
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+private:
+	unsigned short m_usQ1SuperShotgun;
+};
+
+class C_Q1RocketLauncher : public CBaseQuakeWeapon
+{
+public:
+	void Spawn(void);
+	void Precache(void) override;
+	int iItemSlot(void) { return 0; }
+	int GetItemInfo(ItemInfo* p);
+
+	BOOL Deploy(void);
+	void PrimaryAttack(void);
+
+	virtual BOOL UseDecrement(void)
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+private:
+	unsigned short m_usQ1RocketLauncher;
+};
+
 // Based off weapon.cfg from all of the
 // weapons in RTCW. - serecky 9.2.25
 enum rtcw_anims_e {
@@ -1207,6 +1269,11 @@ enum q2_anims_e {
 	Q2_FIRE,
 	Q2_IDLE,
 	Q2_HOLSTER
+};
+
+enum q1_anims_e {
+	Q1_IDLE = 0,
+	Q1_FIRE,
 };
 
 #endif // WEAPONS_H

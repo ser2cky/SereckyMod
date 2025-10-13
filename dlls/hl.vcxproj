@@ -276,9 +276,12 @@
     <ClCompile Include="wpn_shared\hl_wpn_satchel.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_shotgun.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_squeakgrenade.cpp" />
+    <ClCompile Include="wpn_shared\hl_wpn_stub.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_tripmine.cpp" />
     <ClCompile Include="hl_mon_xen.cpp" />
     <ClCompile Include="hl_mon_zombie.cpp" />
+    <ClCompile Include="wpn_shared\q1_weapons.cpp" />
+    <ClCompile Include="wpn_shared\q1_wpn_all.cpp" />
     <ClCompile Include="wpn_shared\q2_wpn_machinegun.cpp" />
     <ClCompile Include="wpn_shared\q2_wpn_railgun.cpp" />
   </ItemGroup>
@@ -314,6 +317,7 @@
     <ClInclude Include="nodes.h" />
     <ClInclude Include="plane.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="quakemonster.h" />
     <ClInclude Include="saverestore.h" />
     <ClInclude Include="schedule.h" />
     <ClInclude Include="scripted.h" />

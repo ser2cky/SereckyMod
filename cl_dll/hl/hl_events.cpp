@@ -52,6 +52,8 @@ void Game_HookEvents( void )
 	gEngfuncs.pfnHookEvent( "events/tripfire.sc",				EV_TripmineFire );
 	gEngfuncs.pfnHookEvent( "events/snarkfire.sc",				EV_SnarkFire );
 
+	gEngfuncs.pfnHookEvent( "events/quake1_shot2.sc",			EV_Quake_FireSuperShot );
+	gEngfuncs.pfnHookEvent( "events/quake1_rock2.sc",			EV_Quake_FireRocket );
 	gEngfuncs.pfnHookEvent( "events/railgun.sc",				EV_FireRailgun );
 	gEngfuncs.pfnHookEvent( "events/flare1.sc",					EV_FireFlare );
 	gEngfuncs.pfnHookEvent( "events/machn.sc",					EV_FireMachinegun );

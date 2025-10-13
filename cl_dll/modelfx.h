@@ -28,9 +28,12 @@ void R_ParticleExplosion(vec3_t org);
 void R_LavaSplash(vec3_t org);
 void R_TeleportSplash(vec3_t org);
 void R_ParticleEffect(vec3_t org, vec3_t dir, int color, int count);
+void R_Muzzleflash(vec3_t origin, vec3_t angles);
+
 void R_RailTrail(vec3_t start, vec3_t end, vec3_t angles);
 void R_ParseMuzzleFlash(int weapon, vec3_t angles, vec3_t origin);
 
 void CL_ClearTEnts(void);
+void CL_CreateExplosion1(vec3_t org);
 void CL_SmokeAndFlash(vec3_t origin);
 void CL_AddTEnts(void);

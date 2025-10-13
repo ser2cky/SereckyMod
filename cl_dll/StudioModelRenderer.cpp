@@ -458,7 +458,7 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 			//Con_DPrintf("%4.2f %.2f %.2f\n", f, m_pCurrentEntity->curstate.animtime, m_clTime);
 		}
 
-		if (m_fDoInterp)
+		if (m_fDoInterp && StudioGetLerpList())
 		{
 			// ugly hack to interpolate angle, position. current is reached 0.1 seconds after being set
 			f = f - 1.0;
@@ -560,7 +560,7 @@ float CStudioModelRenderer::StudioEstimateInterpolant( void )
 {
 	float dadt = 1.0;
 
-	if ( m_fDoInterp && ( m_pCurrentEntity->curstate.animtime >= m_pCurrentEntity->latched.prevanimtime + 0.01 ) )
+	if ( m_fDoInterp && ( m_pCurrentEntity->curstate.animtime >= m_pCurrentEntity->latched.prevanimtime + 0.01 ) && StudioGetLerpList())
 	{
 		dadt = (m_clTime - m_pCurrentEntity->curstate.animtime) / 0.1;
 		if (dadt > 2.0)
@@ -709,7 +709,7 @@ float CStudioModelRenderer::StudioEstimateFrame( mstudioseqdesc_t *pseqdesc )
 {
 	double				dfdt, f;
 
-	if ( m_fDoInterp )
+	if ( m_fDoInterp && StudioGetLerpList() )
 	{
 		if ( m_clTime < m_pCurrentEntity->curstate.animtime )
 		{
@@ -718,12 +718,24 @@ float CStudioModelRenderer::StudioEstimateFrame( mstudioseqdesc_t *pseqdesc )
 		else
 		{
 			dfdt = (m_clTime - m_pCurrentEntity->curstate.animtime) * m_pCurrentEntity->curstate.framerate * pseqdesc->fps;
-
 		}
 	}
 	else
 	{
-		dfdt = 0;
+		// m_fDoInterp fix for viewmodels - serecky 10.12.25
+		if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+		{
+			if (m_clTime < m_pCurrentEntity->curstate.animtime)
+			{
+				dfdt = 0;
+			}
+			else
+			{
+				dfdt = (int)((m_clTime - m_pCurrentEntity->curstate.animtime) * m_pCurrentEntity->curstate.framerate * pseqdesc->fps);
+			}
+		}
+		else
+			dfdt = 0;
 	}
 
 	if (pseqdesc->numframes <= 1)
@@ -843,7 +855,7 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 		}
 	}
 	
-	if (m_fDoInterp &&
+	if (m_fDoInterp && StudioGetLerpList() &&
 		m_pCurrentEntity->latched.sequencetime &&
 		( m_pCurrentEntity->latched.sequencetime + 0.2 > m_clTime ) && 
 		( m_pCurrentEntity->latched.prevsequence < m_pStudioHeader->numseq ))
@@ -888,6 +900,7 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 	else
 	{
 		//Con_DPrintf("prevframe = %4.2f\n", f);
+
 		m_pCurrentEntity->latched.prevframe = f;
 	}
 
@@ -1080,10 +1093,58 @@ void CStudioModelRenderer::StudioMergeBones ( model_t *m_pSubModel )
 
 /*
 ====================
+StudioGetFullbrightList
+
+This is a very shitty
+way to get fullbrights..
+
+Oh well!!!
+====================
+*/
+
+bool CStudioModelRenderer::StudioGetFullbrightList(void)
+{
+	m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
+
+	if (!strcmp(m_pCurrentEntity->model->name, "models/smoke.mdl"))
+		return TRUE;
+	if (!strcmp(m_pCurrentEntity->model->name, "models/r_explode.mdl"))
+		return TRUE;
+	if (!strncmp(m_pCurrentEntity->model->name, "models/fullbright/", 19))
+		return TRUE;
+
+	// return true if we have model that's hardcoded to be
+	// fullbright!!!
+	return FALSE;
+}
+
+/*
+====================
+StudioGetLerpList
+
+Force model to not
+interpolate if they're
+on the NoLerp list...
+====================
+*/
+
+bool CStudioModelRenderer::StudioGetLerpList(void)
+{
+	m_pCurrentEntity = IEngineStudio.GetCurrentEntity();
+
+	if (!strncmp(m_pCurrentEntity->model->name, "models/quake/", 12))
+		return FALSE;
+
+	return TRUE;
+}
+
+/*
+====================
 StudioDrawModel
 
 ====================
 */
+
 int CStudioModelRenderer::StudioDrawModel( int flags )
 {
 	alight_t lighting;
@@ -1192,6 +1253,13 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting );
 
 		IEngineStudio.StudioEntityLight( &lighting );
+
+		if (StudioGetFullbrightList())
+		{
+			lighting.color = {255, 255, 255};
+			lighting.ambientlight = 128.0f;
+			lighting.shadelight = 192.0f;
+		}
 
 		// model and frame independant
 		IEngineStudio.StudioSetupLighting (&lighting);

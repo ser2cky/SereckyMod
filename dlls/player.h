@@ -86,8 +86,6 @@ enum sbar_data
 
 #define CHAT_INTERVAL 1.0f
 
-void SendWeaponAnimMSG(entvars_t* pev, int iAnim, int body);
-
 class CBasePlayer : public CBaseMonster
 {
 public:

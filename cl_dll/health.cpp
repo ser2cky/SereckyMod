@@ -34,6 +34,8 @@ DECLARE_MESSAGE(m_Health, Damage )
 #define PAIN_NAME "sprites/%d_pain.spr"
 #define DAMAGE_NAME "sprites/%d_dmg.spr"
 
+extern void V_CalcDamageKick(vec3_t from, int count, float time);
+
 int giDmgHeight, giDmgWidth;
 
 int giDmgFlags[NUM_DMG_TYPES] = 
@@ -134,6 +136,12 @@ int CHudHealth:: MsgFunc_Damage(const char *pszName,  int iSize, void *pbuf )
 	// Actually took damage?
 	if ( damageTaken > 0 || armor > 0 )
 		CalcDamageDirection(vecFrom);
+
+	float count = (damageTaken * 0.5) + (armor * 0.5);
+	if (count < 10)
+		count = 10;
+
+	V_CalcDamageKick(vecFrom, count, gHUD.m_flTime);
 
 	return 1;
 }

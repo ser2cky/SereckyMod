@@ -23,7 +23,9 @@ public:
 
 public:  
 	// Public Interfaces
-	virtual int StudioDrawModel ( int flags );
+	virtual bool StudioGetFullbrightList( void );
+	virtual bool StudioGetLerpList( void ); // Return true if we can lerp.
+	virtual int StudioDrawModel ( int flags ); // Return true if we are fullbright.
 	virtual int StudioDrawPlayer ( int flags, struct entity_state_s *pplayer );
 
 public:

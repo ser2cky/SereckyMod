@@ -187,6 +187,8 @@ int gmsgTeamNames = 0;
 int gmsgStatusText = 0;
 int gmsgStatusValue = 0; 
 int gmsgWeaponAnim = 0;
+int gmsgQ1TempEnts = 0;
+int gmsgQParticle = 0;
 
 
 void LinkUserMessages( void )
@@ -235,17 +237,12 @@ void LinkUserMessages( void )
 	gmsgStatusValue = REG_USER_MSG("StatusValue", 3); 
 
 	gmsgWeaponAnim = REG_USER_MSG("SendAnim", 2);
+	gmsgQ1TempEnts = REG_USER_MSG("Q1ParseTEnt", -1);
+	gmsgQParticle = REG_USER_MSG("QParticle", 11);
+
 }
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
-
-void SendWeaponAnimMSG(entvars_t* pev, int iAnim, int body)
-{
-	MESSAGE_BEGIN(MSG_ONE, gmsgWeaponAnim, NULL, pev);
-		WRITE_BYTE(iAnim);	// sequence number
-		WRITE_BYTE(body);	// weaponmodel bodygroup.
-	MESSAGE_END();
-}
 
 void CBasePlayer :: Pain( void )
 {
@@ -3464,9 +3461,11 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_snark" );
 		GiveNamedItem( "weapon_hornetgun" );
 #endif
+		GiveNamedItem("weapon_flaregun");//Icebreaker
 		GiveNamedItem( "weapon_railgun" );//q2
 		GiveNamedItem("weapon_machinegun");//q2
-		GiveNamedItem( "weapon_flaregun" );//Icebreaker
+		GiveNamedItem("weapon_supershotgun");//q1
+		GiveNamedItem("weapon_rocketlauncher");//q1
 		gEvilImpulse101 = FALSE;
 		break;
 

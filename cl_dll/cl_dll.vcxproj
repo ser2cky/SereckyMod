@@ -134,6 +134,7 @@
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_hornetgun.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_mp5.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_python.cpp" />
+    <ClCompile Include="..\dlls\wpn_shared\q1_wpn_all.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\q2_wpn_machinegun.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\q2_wpn_railgun.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_rpg.cpp" />
@@ -167,6 +168,7 @@
     <ClCompile Include="ev_common.cpp" />
     <ClCompile Include="ev_doom_actions.cpp" />
     <ClCompile Include="ev_hldm.cpp" />
+    <ClCompile Include="ev_q1dm_all.cpp" />
     <ClCompile Include="flashlight.cpp" />
     <ClCompile Include="GameStudioModelRenderer.cpp" />
     <ClCompile Include="geiger.cpp" />

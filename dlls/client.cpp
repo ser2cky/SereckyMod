@@ -754,10 +754,13 @@ void ClientPrecache( void )
 	// client models
 
 	PRECACHE_MODEL("models/smoke.mdl");
+	PRECACHE_MODEL("models/r_explode.mdl");
+	PRECACHE_MODEL("models/null.mdl");
 
 	if (giPrecacheGrunt)
 		UTIL_PrecacheOther("monster_human_grunt");
 	UTIL_PrecacheOther("car");
+	UTIL_PrecacheOther("quakegun");
 }
 
 /*

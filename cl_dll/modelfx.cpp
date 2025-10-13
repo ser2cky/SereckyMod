@@ -25,8 +25,6 @@
 
 extern engine_studio_api_t IEngineStudio;
 extern float v_frametime;
-
-#define	PARTICLE_GRAVITY	40
 /*
 =============================================
 	modelfx.cpp
@@ -38,8 +36,38 @@ extern float v_frametime;
 	History:
 	10/4/25: Created.
 	10/8/25: Added smoke fx from Quake2
+	10/10/25: Added Quake2 explosions.
 =============================================
 */
+
+#define	PARTICLE_GRAVITY	40
+
+static cl_entity_t r_entities[128];
+int r_numentities;
+
+// struct copied from "cl_tent.c" of quake2
+typedef enum
+{
+	ex_free, ex_explosion, ex_misc, ex_flash, ex_mflash, ex_poly, ex_poly2
+} exptype_t;
+
+typedef struct
+{
+	exptype_t	type;
+	cl_entity_t	ent;
+
+	int			frames;
+	float		light;
+	vec3_t		lightcolor;
+	float		start;
+	int			baseframe;
+	int			modelindex;
+} explosion_t;
+
+#define	MAX_EXPLOSIONS	32
+explosion_t	cl_explosions[MAX_EXPLOSIONS];
+
+static int int_time = 0;
 
 vec3_t q2pal[256] = { {0, 0, 0}, { 15, 15, 15 }, { 31, 31, 31 }, { 47, 47, 47 }, { 63, 63, 63 },
  { 75, 75, 75 }, { 91, 91, 91 }, { 107, 107, 107 }, { 123, 123, 123 }, { 139, 139, 139 },
@@ -121,6 +149,7 @@ void ParticleTypes(particle_t* p, float frametime, ptype_t type)
 		else
 			p->color = ramp3[(int)p->ramp];
 		p->vel[2] += grav;
+		gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		break;
 
 	case pt_explode:
@@ -132,6 +161,7 @@ void ParticleTypes(particle_t* p, float frametime, ptype_t type)
 		for (i = 0; i < 3; i++)
 			p->vel[i] += p->vel[i] * dvel;
 		p->vel[2] -= grav;
+		gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		break;
 
 	case pt_explode2:
@@ -143,6 +173,7 @@ void ParticleTypes(particle_t* p, float frametime, ptype_t type)
 		for (i = 0; i < 3; i++)
 			p->vel[i] -= p->vel[i] * frametime;
 		p->vel[2] -= grav;
+		gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		break;
 
 	case pt_blob:
@@ -192,6 +223,7 @@ void R_ParticleExplosion(vec3_t org)
 		p->type = pt_clientcustom;
 		p->die = gEngfuncs.GetClientTime() + 5;
 		p->color = ramp1[0];
+		gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		p->ramp = rand() & 3;
 
 		if (i & 1)
@@ -236,6 +268,7 @@ void R_BlobExplosion(vec3_t org)
 		if (i & 1)
 		{
 			p->color = 66 + rand() % 6;
+			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 			for (j = 0; j < 3; j++)
 			{
 				p->org[j] = org[j] + ((rand() % 32) - 16);
@@ -245,6 +278,7 @@ void R_BlobExplosion(vec3_t org)
 		else
 		{
 			p->color = 150 + rand() % 6;
+			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 			for (j = 0; j < 3; j++)
 			{
 				p->org[j] = org[j] + ((rand() % 32) - 16);
@@ -280,6 +314,7 @@ void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count)
 
 		p->die = gEngfuncs.GetClientTime() + 0.1 * (rand() % 5);
 		p->color = (color & ~7) + (rand() & 7);
+		gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		p->type = pt_clientcustom;
 		for (j = 0; j < 3; j++)
 		{
@@ -314,6 +349,7 @@ void R_LavaSplash(vec3_t org)
 				p->type = pt_clientcustom;
 				p->die = gEngfuncs.GetClientTime() + 2 + (rand() & 31) * 0.02;
 				p->color = 224 + (rand() & 7);
+				gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 
 				dir[0] = j * 8 + (rand() & 7);
 				dir[1] = i * 8 + (rand() & 7);
@@ -353,6 +389,7 @@ void R_TeleportSplash(vec3_t org)
 				p->type = pt_clientcustom;
 				p->die = gEngfuncs.GetClientTime() + 0.2 + (rand() & 7) * 0.02;
 				p->color = 7 + (rand() & 7);
+				gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 
 				dir[0] = j * 8;
 				dir[1] = i * 8;
@@ -403,7 +440,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type)
 		case 0:
 			p = gEngfuncs.pEfxAPI->R_AllocParticle(PT_FireCallback);
 			break;
-		defaut:
+		default:
 			break;
 		}
 
@@ -421,6 +458,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type)
 			for (j = 0; j < 3; j++)
 				p->org[j] = start[j] + ((rand() % 6) - 3);
 			len -= 3;
+			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		}
 		else if (type == 2)
 		{	// blood
@@ -428,6 +466,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type)
 			p->color = 67 + (rand() & 3);
 			for (j = 0; j < 3; j++)
 				p->org[j] = start[j] + ((rand() % 6) - 3);
+			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		}
 		else if (type == 6)
 		{	// voor trail
@@ -436,6 +475,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type)
 			p->die = gEngfuncs.GetClientTime() + 0.3;
 			for (j = 0; j < 3; j++)
 				p->org[j] = start[j] + ((rand() & 15) - 8);
+			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		}
 		else if (type == 1)
 		{	// smoke smoke
@@ -444,6 +484,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type)
 			p->type = pt_clientcustom;
 			for (j = 0; j < 3; j++)
 				p->org[j] = start[j] + ((rand() % 6) - 3);
+			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		}
 		else if (type == 0)
 		{	// rocket trail
@@ -452,6 +493,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type)
 			p->type = pt_clientcustom;
 			for (j = 0; j < 3; j++)
 				p->org[j] = start[j] + ((rand() % 6) - 3);
+			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		}
 		else if (type == 3 || type == 5)
 		{	// tracer
@@ -477,11 +519,33 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type)
 				p->vel[0] = 30 * -vec[1];
 				p->vel[1] = 30 * vec[0];
 			}
+			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 		}
 		VectorAdd(start, vec, start);
 	}
 }
 
+//============================================
+//	R_Muzzleflash
+//	From Quake1's CL_RelinkEntities
+//============================================
+
+void R_Muzzleflash(vec3_t origin, vec3_t angles)
+{
+	vec3_t		fv, rv, uv;
+	dlight_t* dl;
+
+	dl = gEngfuncs.pEfxAPI->CL_AllocDlight(1);
+	VectorCopy(origin, dl->origin);
+	dl->origin[2] += 16;
+	AngleVectors(angles, fv, rv, uv);
+
+	VectorMA(dl->origin, 18, fv, dl->origin);
+	dl->radius = 200 + (rand() & 31);
+	dl->minlight = 32;
+	dl->color.r = dl->color.g = dl->color.b = 255;
+	dl->die = gEngfuncs.GetClientTime() + 0.1;
+}
 
 //============================================
 //	Q2CrossProduct
@@ -721,29 +785,6 @@ void R_ParseMuzzleFlash(int weapon, vec3_t angles, vec3_t origin)
 	}
 }
 
-// struct copied from "cl_tent.c" of quake2
-
-typedef enum
-{
-	ex_free, ex_explosion, ex_misc, ex_flash, ex_mflash, ex_poly, ex_poly2
-} exptype_t;
-
-typedef struct
-{
-	exptype_t	type;
-	cl_entity_t	ent;
-
-	int			frames;
-	float		light;
-	vec3_t		lightcolor;
-	float		start;
-	int			baseframe;
-	int			modelindex;
-} explosion_t;
-
-#define	MAX_EXPLOSIONS	32
-explosion_t	cl_explosions[MAX_EXPLOSIONS];
-
 /*
 =================
 CL_ClearTEnts
@@ -770,6 +811,7 @@ CL_AllocExplosion
 From Quake2.
 =================
 */
+
 explosion_t* CL_AllocExplosion(void)
 {
 	int		i;
@@ -807,12 +849,10 @@ CL_SmokeAndFlash
 From Quake2.
 =================
 */
-static int int_time = 0;
 
 void CL_SmokeAndFlash(vec3_t origin)
 {
 	explosion_t* ex;
-
 	struct model_s* mod;
 	int modelindex;
 
@@ -849,14 +889,51 @@ void CL_SmokeAndFlash(vec3_t origin)
 
 /*
 =================
+CL_CreateExplosion1
+
+From Quake2:
+CL_ParseTEnt
+to be specific...
+=================
+*/
+
+void CL_CreateExplosion1(vec3_t org)
+{
+	explosion_t* ex = CL_AllocExplosion();
+	struct model_s* mod;
+	int modelindex;
+
+	mod = gEngfuncs.CL_LoadModel("models/r_explode.mdl", &modelindex);
+
+	if (!mod)
+		return;
+
+	ex->type = ex_poly;
+	ex->start = int_time - 100;
+	ex->light = 350;
+	ex->lightcolor[0] = 255;
+	ex->lightcolor[1] = 128;
+	ex->lightcolor[2] = 128;
+	ex->ent.curstate.angles[1] = rand() % 360;
+	ex->ent.curstate.animtime = gEngfuncs.GetClientTime() + 0.001f;
+	if (gEngfuncs.pfnRandomFloat(0.0f, 1.0f) < 0.5f)
+		ex->ent.curstate.sequence = 1;
+	else
+		ex->ent.curstate.sequence = 0;
+	ex->ent.curstate.frame = 0;
+	ex->ent.curstate.framerate = 1.0f;
+	ex->ent.model = mod;
+	ex->modelindex = modelindex;
+	ex->frames = 15;
+}
+
+/*
+=================
 CL_AddExplosions
 
 From Quake2.
 =================
 */
-
-static cl_entity_t r_entities[128];
-int r_numentities;
 
 void CL_AddExplosions(void)
 {
@@ -875,12 +952,16 @@ void CL_AddExplosions(void)
 
 		frac = (int_time - ex->start) / 100.0f;
 		f = floor(frac);
+
 		ent = &ex->ent;
 
-		ent->curstate.origin = ent->origin;
-		ent->model = IEngineStudio.GetModelByIndex(ex->modelindex);
-		ent->curstate.modelindex = ex->modelindex;
 		ent->curstate.rendermode = kRenderTransAlpha;
+
+		if (ex->modelindex)
+		{
+			ent->model = IEngineStudio.GetModelByIndex(ex->modelindex);
+			ent->curstate.modelindex = ex->modelindex;
+		}
 
 		switch (ex->type)
 		{
@@ -902,8 +983,7 @@ void CL_AddExplosions(void)
 				ex->type = ex_free;
 				break;
 			}
-			ent->curstate.renderamt = 1.0;
-			ent->curstate.renderamt *= 255.0f;
+			ent->curstate.renderamt = 255.0f;
 			break;
 		case ex_poly:
 			if (f >= ex->frames - 1)
@@ -912,8 +992,7 @@ void CL_AddExplosions(void)
 				break;
 			}
 
-			ent->curstate.renderamt = (16.0 - (float)f) / 16.0;
-			ent->curstate.renderamt *= 255.0f;
+			ent->curstate.renderamt = ((16.0 - (float)f) / 16.0) * 255.0f;
 
 			if (f < 10)
 			{
@@ -937,8 +1016,7 @@ void CL_AddExplosions(void)
 				break;
 			}
 
-			ent->curstate.renderamt = (5.0 - (float)f) / 5.0;
-			ent->curstate.renderamt *= 255.0f;
+			ent->curstate.renderamt = ((5.0 - (float)f) / 5.0) * 255.0f;
 			ent->curstate.skin = 0;
 			//ent->flags |= RF_TRANSLUCENT;
 			break;
@@ -949,17 +1027,23 @@ void CL_AddExplosions(void)
 
 		if (ex->light)
 		{
-			/*V_AddLight(ent->origin, ex->light * ent->alpha,
-				ex->lightcolor[0], ex->lightcolor[1], ex->lightcolor[2]);*/
+			dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(1);
+
+			VectorCopy(ent->origin, dl->origin);
+			dl->die = gEngfuncs.GetClientTime();
+			dl->radius = ex->light * (ent->curstate.renderamt / 255.0f);
+			dl->color.r = ex->lightcolor[0];
+			dl->color.g = ex->lightcolor[1];
+			dl->color.b = ex->lightcolor[2];
 		}
 
-		VectorCopy(ent->origin, ent->prevstate.origin);
+		VectorCopy(ent->origin, ent->curstate.origin);
 
 		if (f < 0)
 			f = 0;
 
-		if (ex->frames)
-			gEngfuncs.pfnConsolePrint(UTIL_VarArgs("Coord: %.2f %.2f %.2f\nModelIndex: %d\n", ent->origin.x, ent->origin.y, ent->origin.z, ex->modelindex));
+		//if (ex->frames)
+		//	gEngfuncs.pfnConsolePrint(UTIL_VarArgs("Coord: %.2f %.2f %.2f\nModelIndex: %d\n", ent->origin.x, ent->origin.y, ent->origin.z, ex->modelindex));
 
 		gEngfuncs.CL_CreateVisibleEntity(ET_NORMAL, ent);
 	}

@@ -29,10 +29,13 @@ This file contains "stubs" of class member implementations so that we can predic
 #include	"nodes.h"
 #include	"soundent.h"
 #include	"skill.h"
+#include	"quakemonster.h"
 
 // Globals used by game logic
 const Vector g_vecZero = Vector( 0, 0, 0 );
 int gmsgWeapPickup = 0;
+int gmsgQ1TempEnts = 0;
+int gmsgQParticle = 0;
 enginefuncs_t g_engfuncs;
 globalvars_t  *gpGlobals;
 
@@ -358,3 +361,17 @@ int CBasePlayerWeapon::ExtractClipAmmo( CBasePlayerWeapon *pWeapon ) { return 0;
 void CBasePlayerWeapon::RetireWeapon( void ) { }
 void CSoundEnt::InsertSound ( int iType, const Vector &vecOrigin, int iVolume, float flDuration ) {}
 void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType ){}
+
+void CBaseQuakeWeapon::Precache(void) {};
+void CBaseQuakeWeapon::W_FireAxe(void) {};
+void CBaseQuakeWeapon::W_FireRocket(void) {};
+void CBaseQuakeWeapon::W_FireShotgun(void) {};
+void CBaseQuakeWeapon::W_FireSuperShotgun(void) {};
+
+Vector CQuakeMonster::wall_velocity(void) { return g_vecZero;  };
+void CQuakeMonster::SpawnMeatSpray(Vector org, Vector vel) {};
+void CQuakeMonster::SpawnBlood(Vector org, Vector vel, float damage) {};
+void CQuakeMonster::spawn_touchblood(float damage) {};
+void CQuakeMonster::SpawnChunk(Vector org, Vector vel) {};
+void CQuakeMonster::TraceAttack(float damage, Vector dir) {};
+void CQuakeMonster::FireBullets(int shotcount, Vector dir, Vector spread) {};

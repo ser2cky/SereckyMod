@@ -28,8 +28,6 @@
 #include "com_model.h"
 #include "../modelfx.h"
 
-#include "r_studioint.h"
-
 void V_Q2Punch(float* kick_org, float* kick_ang);
 
 void EV_FireMachinegun(event_args_t* args)

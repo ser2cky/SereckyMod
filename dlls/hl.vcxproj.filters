@@ -348,6 +348,15 @@
     <ClCompile Include="wpn_shared\q2_wpn_machinegun.cpp">
       <Filter>Source Files\weapons</Filter>
     </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_stub.cpp">
+      <Filter>Source Files\weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\q1_weapons.cpp">
+      <Filter>Source Files\weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\q1_wpn_all.cpp">
+      <Filter>Source Files\weapons</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="activity.h">
@@ -483,6 +492,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="weapons.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="quakemonster.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

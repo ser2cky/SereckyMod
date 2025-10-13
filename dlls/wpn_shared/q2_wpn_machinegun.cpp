@@ -113,12 +113,11 @@ Vector fire_lead(edict_t* self, vec3_t start, vec3_t aimdir, int damage, int kic
 	vec3_t		up = gpGlobals->v_up;
 	float		r, u;
 
-#ifndef CLIENT_DLL
-
-	TraceResult tr;
-
 	r = RANDOM_FLOAT(-1.0f, 1.0f) * hspread;
 	u = RANDOM_FLOAT(-1.0f, 1.0f) * vspread;
+
+#ifndef CLIENT_DLL
+	TraceResult tr;
 
 	end = start + aimdir + (8192 * forward)
 		+ (r * right) + (u * up);

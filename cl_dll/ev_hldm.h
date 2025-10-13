@@ -91,5 +91,7 @@ void EV_SnarkFire(event_args_s* args);
 void EV_FireRailgun(event_args_s* args);
 void EV_FireFlare(event_args_s* args);
 void EV_FireMachinegun(event_args_t* args);
+void EV_Quake_FireSuperShot(event_args_t* args);
+void EV_Quake_FireRocket(event_args_t* args);
 
 void EV_TrainPitchAdjust(event_args_s* args);

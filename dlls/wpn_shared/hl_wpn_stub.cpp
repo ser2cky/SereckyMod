@@ -18,25 +18,28 @@
 #include "cbase.h"
 #include "monsters.h"
 #include "weapons.h"
-#include "nodes.h"
 #include "player.h"
 
-LINK_WEAPON_TO_CLASS(weapon_colt, CStubGun);
+#if 0
+
+LINK_WEAPON_TO_CLASS(weapon_stubgun, CStubGun);
 
 /*
 ======================================
 Spawn
+
+Spawn function for my gun.
 ======================================
 */
 
 void CStubGun::Spawn()
 {
-	pev->classname = MAKE_STRING("weapon_9mmhandgun"); // hack to allow for old names
+	pev->classname = MAKE_STRING("weapon_stubgun"); // hack to allow for old names
 	Precache();
-	m_iId = WEAPON_GLOCK;
-	SET_MODEL(ENT(pev), "models/w_9mmhandgun.mdl");
+	m_iId = WEAPON_STUBGUN;
+	SET_MODEL(ENT(pev), "models/w_stubgun.mdl");
 
-	m_iDefaultAmmo = GLOCK_DEFAULT_GIVE;
+	m_iDefaultAmmo = STUBGUN_DEFAULT_GIVE;
 
 	FallInit();// get ready to fall down.
 }
@@ -44,37 +47,41 @@ void CStubGun::Spawn()
 /*
 ======================================
 Precache
+
+Precache all assets need for my gun.
 ======================================
 */
 
 void CStubGun::Precache(void)
 {
-	PRECACHE_MODEL("models/v_9mmhandgun.mdl");
-	PRECACHE_MODEL("models/w_9mmhandgun.mdl");
-	PRECACHE_MODEL("models/p_9mmhandgun.mdl");
+	PRECACHE_MODEL("models/v_stubgun.mdl");
+	PRECACHE_MODEL("models/w_stubgun.mdl");
+	PRECACHE_MODEL("models/p_stubgun.mdl");
 
-	m_iShell = PRECACHE_MODEL("models/shell.mdl");// brass shell
+	m_iShell = PRECACHE_MODEL("models/shell.mdl");
 }
 
 /*
 ======================================
 GetItemInfo
+
+Send my gun's info to the client.
 ======================================
 */
 
 int CStubGun::GetItemInfo(ItemInfo* p)
 {
-	p->pszName = STRING(pev->classname);
-	p->pszAmmo1 = "9mm";
-	p->iMaxAmmo1 = _9MM_MAX_CARRY;
-	p->pszAmmo2 = NULL;
-	p->iMaxAmmo2 = -1;
-	p->iMaxClip = GLOCK_MAX_CLIP;
-	p->iSlot = 1;
-	p->iPosition = 3;
-	p->iFlags = 0;
-	p->iId = m_iId = WEAPON_GLOCK;
-	p->iWeight = GLOCK_WEIGHT;
+	p->pszName = STRING(pev->classname);	// Gun's name...
+	p->pszAmmo1 = "9mm";					// Ammo type...
+	p->iMaxAmmo1 = _9MM_MAX_CARRY;			// Max primary ammo...
+	p->pszAmmo2 = NULL;						// Secondary Ammo type...
+	p->iMaxAmmo2 = -1;						// Max secondary ammo...
+	p->iMaxClip = STUBGUN_MAX_CLIP;			// Max clip for your gun...
+	p->iSlot = 1;							// Gun's slot position
+	p->iPosition = 3;						// Gun's position in slot bucket...
+	p->iFlags = 0;							// Special gun flags...
+	p->iId = m_iId = WEAPON_STUBGUN;		// Gun's I.D
+	p->iWeight = STUBGUN_WEIGHT;			// Gun's weight for auto-switching
 
 	return 1;
 }
@@ -82,17 +89,27 @@ int CStubGun::GetItemInfo(ItemInfo* p)
 /*
 ======================================
 Deploy
+
+Bring up my gun, and play a little
+animation.
 ======================================
 */
 
 BOOL CStubGun::Deploy()
 {
-	return DefaultDeploy("models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", /*UseDecrement() ? 1 : 0*/ 0);
+	return DefaultDeploy(
+		"models/v_stubgun.mdl", 
+		"models/p_stubgun.mdl", 
+		GLOCK_DRAW, 
+		"onehanded", 
+		0);
 }
 
 /*
 ======================================
 PrimaryAttack
+
+My gun's primary attack function.
 ======================================
 */
 
@@ -104,6 +121,8 @@ void CStubGun::PrimaryAttack(void)
 /*
 ======================================
 SecondaryAttack
+
+My gun's secondary attack function.
 ======================================
 */
 
@@ -115,6 +134,8 @@ void CStubGun::SecondaryAttack(void)
 /*
 ======================================
 Reload
+
+My gun's reload function.
 ======================================
 */
 
@@ -126,6 +147,9 @@ void CStubGun::Reload(void)
 /*
 ======================================
 ItemPostFrame
+
+My gun's "PostFrame" function that
+gets called each and every frame.
 ======================================
 */
 
@@ -137,6 +161,8 @@ void CStubGun::ItemPostFrame(void)
 /*
 ======================================
 WeaponIdle
+
+My gun's "WeaponIdle" function.
 ======================================
 */
 
@@ -144,3 +170,5 @@ void CStubGun::WeaponIdle(void)
 {
 
 }
+
+#endif

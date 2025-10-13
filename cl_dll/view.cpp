@@ -61,6 +61,7 @@ extern "C"
 	float	vJumpAngles[3];
 }
 
+void SCR_CalcRefdef(struct ref_params_s* pparams);
 void V_DropPunchAngle ( float frametime, float *ev_punchangle );
 void VectorAngles( const float *forward, float *angles );
 
@@ -119,97 +120,48 @@ cvar_t	v_ipitch_level		= {"v_ipitch_level", "0.3", 0, 0.3};
 float	v_idlescale;  // used by TFC for concussion grenade effect
 
 // temp working variables for player view
-float		bobfracsin = 0.0f;
-int			bobcycle = 0;
-int			bobCycle = 0;
-float		xyspeed = 0.0f;
-float		bobtime = 0.0f;
-float		bobmove = 0.0f;
-extern		kbutton_t in_duck;
-extern		kbutton_t in_speed;
+float			bobfracsin = 0.0f;
+int				bobcycle = 0;
+int				bobCycle = 0;
+float			xyspeed = 0.0f;
+float			bobtime = 0.0f;
+float			bobmove = 0.0f;
+extern			kbutton_t in_duck;
+extern			kbutton_t in_speed;
 
-float		landTime = 0.0f;
-float		groundTime = 0.0f;
-float		view_ofs = 0.0f;
-static float landChange = -8.0f;
-float		client_bobtime = 0.0f;
-float		v_dmg_roll, v_dmg_pitch, v_dmg_time;	// damage kicks
-static float fall_time, fall_value;		// for view drop on fall
+float			landTime = 0.0f;
+float			groundTime = 0.0f;
+float			view_ofs = 0.0f;
+static float	landChange = -8.0f;
+float			client_bobtime = 0.0f;
+float			v_dmg_roll, v_dmg_pitch, v_dmg_time;	// damage kicks
+static float	fall_time, fall_value;					// for view drop on fall
 
-static float lerpPunch[3];
-static float ev_lerpPunch[3];
+static float	lerpPunch[3];
+static float	ev_lerpPunch[3];
 
-cvar_t		*cl_gun_roll;
-cvar_t		*cl_gun_yaw;
-cvar_t		*cl_gun_pitch;
+cvar_t			*cl_gun_roll;
+cvar_t			*cl_gun_yaw;
+cvar_t			*cl_gun_pitch;
 
-cvar_t		*cl_run_pitch;
-cvar_t		*cl_run_roll;
-cvar_t		*cl_bob_up;
-cvar_t		*cl_bob_pitch;
-cvar_t		*cl_bob_roll;
-cvar_t		*cl_bob_style;
+cvar_t			*cl_run_pitch;
+cvar_t			*cl_run_roll;
+cvar_t			*cl_bob_up;
+cvar_t			*cl_bob_pitch;
+cvar_t			*cl_bob_roll;
+cvar_t			*cl_bob_style;
+
+cvar_t			*cl_bob;
+cvar_t			*cl_bobcycle;
+cvar_t			*cl_bobup;
+cvar_t			*cl_rollspeed; //= { "cl_rollspeed", "200" };
+cvar_t			*cl_rollangle; //= { "cl_rollangle", "2.0" };
+cvar_t			*scr_viewsize;
+
+int sb_lines;
 
 #define	LAND_DEFLECT_TIME	150
 #define	LAND_RETURN_TIME	300
-
-//=============================================================================
-/*
-void V_NormalizeAngles( float *angles )
-{
-	int i;
-	// Normalize angles
-	for ( i = 0; i < 3; i++ )
-	{
-		if ( angles[i] > 180.0 )
-		{
-			angles[i] -= 360.0;
-		}
-		else if ( angles[i] < -180.0 )
-		{
-			angles[i] += 360.0;
-		}
-	}
-}
-
-/*
-===================
-V_InterpolateAngles
-
-Interpolate Euler angles.
-FIXME:  Use Quaternions to avoid discontinuities
-Frac is 0.0 to 1.0 ( i.e., should probably be clamped, but doesn't have to be )
-===================
-
-void V_InterpolateAngles( float *start, float *end, float *output, float frac )
-{
-	int i;
-	float ang1, ang2;
-	float d;
-	
-	V_NormalizeAngles( start );
-	V_NormalizeAngles( end );
-
-	for ( i = 0 ; i < 3 ; i++ )
-	{
-		ang1 = start[i];
-		ang2 = end[i];
-
-		d = ang2 - ang1;
-		if ( d > 180 )
-		{
-			d -= 360;
-		}
-		else if ( d < -180 )
-		{	
-			d += 360;
-		}
-
-		output[i] = ang1 + d * frac;
-	}
-
-	V_NormalizeAngles( output );
-} */
 
 /*
 ===============
@@ -218,7 +170,7 @@ Quake3 Viewbob.
 ===============
 */
 
-void V_Q3_CalcBobNew(struct ref_params_s* pparams)
+void V_Q3_CalcGunOffset(struct ref_params_s* pparams)
 {
 	cl_entity_t* view;
 	static float offset = 0.0f;
@@ -333,10 +285,10 @@ V_Q3_CalcBobValues
 Calc Quake3 Viewbob Values
 ============================
 */
-void V_Q3_CalcBobValues( struct ref_params_s* pparams )
+void V_Q3_CalcNormalRefdef( struct ref_params_s* pparams )
 {
 	static float real_landtime = 0.0f;
-	int old;
+	int old, i;
 
 	if (pparams->frametime <= 0.0f)
 		return;
@@ -388,7 +340,21 @@ void V_Q3_CalcBobValues( struct ref_params_s* pparams )
 	V_Q3_CalcViewOffset(pparams);
 
 	// determine the gun offsets
-	V_Q3_CalcBobNew(pparams);
+	V_Q3_CalcGunOffset(pparams);
+
+	// Add in the punchangle, if any
+	for (i = 0; i < 3; i++)
+	{
+		lerpPunch[i] = Interpolate(lerpPunch[i], pparams->punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
+		ev_lerpPunch[i] = Interpolate(ev_lerpPunch[i], ev_punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
+	}
+
+	VectorAdd(pparams->viewangles, lerpPunch, pparams->viewangles);
+
+	// Include client side punch, too
+	VectorAdd(pparams->viewangles, ev_lerpPunch, pparams->viewangles);
+
+	V_DropPunchAngle(pparams->frametime, (float*)&ev_punchangle);
 }
 
 /*
@@ -413,12 +379,12 @@ P_FallingDamage
 */
 
 #define	FALL_TIME		0.3
+#define DAMAGE_TIME		0.5
 
 void P_FallingDamage(struct ref_params_s* pparams, double time)
 {
 	static float nextthink = 0.0f;
 	float	delta;
-	int		damage;
 	vec3_t	dir;
 	static vec3_t oldvel = { 0, 0, 0 };
 
@@ -467,7 +433,7 @@ V_Q2_CalcViewOffset
 Quake2 Camerabob.
 ===================
 */
-vec3_t punchangle;
+
 void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 {
 	float		bob, delta, ratio;
@@ -484,99 +450,111 @@ void V_Q2_CalcViewOffset(struct ref_params_s* pparams, double time)
 
 	if ( nextthink <= time || nextthink - time > 0.1f )
 	{
-		// add angles based on weapon kick
-		oldangles = angles;
+		if (pparams->health <= 0.0f)
+		{
+			VectorClear(angles);
 
-		// base angles
-		angles = pparams->punchangle;
-		angles = angles + kick_angles;
+			angles[ROLL] = 40;
+			angles[PITCH] = -15;
+			//angles[YAW] = ent->client->killer_yaw;
+		}
+		else
+		{
+			// add angles based on weapon kick
+			oldangles = angles;
 
-		// add angles based on damage kick
-		//ratio = (v_dmg_time - time) / DAMAGE_TIME;
-		//if (ratio < 0)
-		//{
-		//	ratio = 0;
-		//	ent->client->v_dmg_pitch = 0;
-		//	ent->client->v_dmg_roll = 0;
-		//}
-		//angles[PITCH] += ratio * v_dmg_pitch;
-		//angles[ROLL] += ratio * v_dmg_roll;
+			// base angles
+			angles = pparams->punchangle;
+			angles = angles + kick_angles;
+			angles = angles + ev_punchangle;
 
-		//// add pitch based on fall kick
+			// add angles based on damage kick
+			ratio = (v_dmg_time - time) / DAMAGE_TIME;
+			if (ratio < 0)
+			{
+				ratio = 0;
+				v_dmg_pitch = 0;
+				v_dmg_roll = 0;
+			}
+			angles[PITCH] += ratio * v_dmg_pitch;
+			angles[ROLL] += ratio * v_dmg_roll;
 
-		ratio = (fall_time - time) / FALL_TIME;
-		if (ratio < 0)
-			ratio = 0;
-		angles[PITCH] += ratio * fall_value;
+			//// add pitch based on fall kick
 
-		// add angles based on velocity
+			ratio = (fall_time - time) / FALL_TIME;
+			if (ratio < 0)
+				ratio = 0;
+			angles[PITCH] += ratio * fall_value;
 
-		delta = DotProduct(pparams->simvel, pparams->forward);
-		angles[PITCH] += delta * cl_run_pitch->value;
+			// add angles based on velocity
 
-		delta = DotProduct(pparams->simvel, pparams->right);
-		angles[ROLL] += delta * cl_run_roll->value;
+			delta = DotProduct(pparams->simvel, pparams->forward);
+			angles[PITCH] += delta * cl_run_pitch->value;
 
-		// add angles based on bob
+			delta = DotProduct(pparams->simvel, pparams->right);
+			angles[ROLL] += delta * cl_run_roll->value;
 
-		delta = bobfracsin * cl_bob_pitch->value * xyspeed;
-		if (in_duck.state & 1)
-			delta *= 6;		// crouching
-		angles[PITCH] += delta;
-		delta = bobfracsin * cl_bob_roll->value * xyspeed;
-		if (in_duck.state & 1)
-			delta *= 6;		// crouching
-		if (bobcycle & 1)
-			delta = -delta;
-		angles[ROLL] += delta;
+			// add angles based on bob
 
-		//===================================
+			delta = bobfracsin * cl_bob_pitch->value * xyspeed;
+			if (in_duck.state & 1)
+				delta *= 6;		// crouching
+			angles[PITCH] += delta;
+			delta = bobfracsin * cl_bob_roll->value * xyspeed;
+			if (in_duck.state & 1)
+				delta *= 6;		// crouching
+			if (bobcycle & 1)
+				delta = -delta;
+			angles[ROLL] += delta;
 
-		// base origin
+			//===================================
 
-		oldv = v;
-		VectorClear(v);
+			// base origin
 
-		// add fall height
+			oldv = v;
+			VectorClear(v);
 
-		ratio = (fall_time - time) / FALL_TIME;
-		if (ratio < 0)
-			ratio = 0;
-		v[2] -= ratio * fall_value * 0.4;
+			// add fall height
 
-		// add bob height
+			ratio = (fall_time - time) / FALL_TIME;
+			if (ratio < 0)
+				ratio = 0;
+			v[2] -= ratio * fall_value * 0.4;
 
-		bob = bobfracsin * xyspeed * cl_bob_up->value;
-		if (bob > 6)
-			bob = 6;
-		//gi.DebugGraph (bob *2, 255);
-		v[2] += bob;
+			// add bob height
 
-		// add kick offset
+			bob = bobfracsin * xyspeed * cl_bob_up->value;
+			if (bob > 6)
+				bob = 6;
+			//gi.DebugGraph (bob *2, 255);
+			v[2] += bob;
 
-		VectorAdd(v, kick_origin, v);
+			// add kick offset
 
-		// absolutely bound offsets
-		// so the view can never be outside the player box
+			VectorAdd(v, kick_origin, v);
 
-		if (v[0] < -14)
-			v[0] = -14;
-		else if (v[0] > 14)
-			v[0] = 14;
-		if (v[1] < -14)
-			v[1] = -14;
-		else if (v[1] > 14)
-			v[1] = 14;
-		if (v[2] < -22)
-			v[2] = -22;
-		else if (v[2] > 30)
-			v[2] = 30;
+			// absolutely bound offsets
+			// so the view can never be outside the player box
 
-		// clear weapon kicks
-		VectorClear(kick_origin);
-		VectorClear(kick_angles);
-		VectorClear(pparams->punchangle);
+			if (v[0] < -14)
+				v[0] = -14;
+			else if (v[0] > 14)
+				v[0] = 14;
+			if (v[1] < -14)
+				v[1] = -14;
+			else if (v[1] > 14)
+				v[1] = 14;
+			if (v[2] < -22)
+				v[2] = -22;
+			else if (v[2] > 30)
+				v[2] = 30;
 
+			// clear weapon kicks
+			VectorClear(kick_origin);
+			VectorClear(kick_angles);
+			VectorClear(pparams->punchangle);
+			VectorClear(ev_punchangle);
+		}
 		nextthink = time + 0.1f;
 	}
 
@@ -597,7 +575,7 @@ Quake2 Viewbob.
 ===============
 */
 
-void V_Q2_CalcBobNew(struct ref_params_s* pparams, double time)
+void V_Q2_CalcGunOffset(struct ref_params_s* pparams, double time)
 {
 	int		i;
 	float	delta;
@@ -666,7 +644,7 @@ Calc Quake2 Viewbob Values
 ============================
 */
 
-void V_Q2_CalcBobValues(struct ref_params_s* pparams)
+void V_Q2_CalcNormalRefdef(struct ref_params_s* pparams)
 {
 	float bobtime = 0.0f; 
 	static float nextthink;
@@ -717,8 +695,9 @@ void V_Q2_CalcBobValues(struct ref_params_s* pparams)
 	V_Q2_CalcViewOffset(pparams, time);
 
 	// determine the gun offsets
-	V_Q2_CalcBobNew(pparams, time);
+	V_Q2_CalcGunOffset(pparams, time);
 }
+
 /*
 ============================
 V_DoomCalcBob
@@ -798,11 +777,154 @@ void V_DoomCalcBob(struct ref_params_s* pparams)
 }
 
 /*
+============================
+V_Q1_CalcNormalRefdef
+Calc Quake1/Hexen/Hl1 viewbob
+============================
+*/
+
+void V_Q1DropPunchAngle(float frametime, float* ev_punchangle);
+void V_CalcViewRoll(struct ref_params_s* pparams);
+float V_CalcBob(struct ref_params_s* pparams);
+
+void V_Q1_CalcNormalRefdef(struct ref_params_s* pparams)
+{
+	cl_entity_t*	view;
+	vec3_t			angles;
+	float			bob;
+	int				i;
+
+	// view is the weapon model (only visible from inside body )
+	view = gEngfuncs.GetViewModel();
+
+	// transform the view offset by the model's matrix to get the offset from
+	// model origin for the view
+	bob = V_CalcBob(pparams);
+
+	pparams->vieworg[2] += (bob);
+
+	V_CalcViewRoll(pparams);
+
+	for (i = 0; i < 3; i++)
+	{
+		view->origin[i] += bob * 0.4 * pparams->forward[i];
+	}
+	view->origin[2] += bob;
+
+	// throw in a little tilt.
+	view->angles[YAW] -= bob * 0.5;
+	view->angles[ROLL] -= bob * 1;
+	view->angles[PITCH] -= bob * 0.3;
+
+	if (cl_bob_style->value == 1.0f)
+		VectorCopy(view->angles, view->curstate.angles);
+
+	// pushing the view origin down off of the same X/Z plane as the ent's origin will give the
+	// gun a very nice 'shifting' effect when the player looks up/down. If there is a problem
+	// with view model distortion, this may be a cause. (SJB). 
+	view->origin[2] -= 1;
+
+	// fudge position around to keep amount of weapon visible
+	// roughly equal with different FOV
+	if (IEngineStudio.IsHardware())
+	{
+		if (scr_viewsize->value == 110)
+			view->origin[2] += 1;
+		else if (scr_viewsize->value == 100)
+			view->origin[2] += 2;
+		else if (scr_viewsize->value == 90)
+			view->origin[2] += 1;
+		else if (scr_viewsize->value == 80)
+			view->origin[2] += 0.5;
+	}
+	else // hack for S/W & GL modes...
+	{
+		if (pparams->viewsize == 110)
+			view->origin[2] += 1;
+		else if (pparams->viewsize == 100)
+			view->origin[2] += 2;
+		else if (pparams->viewsize == 90)
+			view->origin[2] += 1;
+		else if (pparams->viewsize == 80)
+			view->origin[2] += 0.5;
+	}
+
+	// Add in the punchangle, if any
+	VectorAdd(pparams->viewangles, pparams->punchangle, pparams->viewangles);
+
+	// Include client side punch, too
+	VectorAdd(pparams->viewangles, (float*)&ev_punchangle, pparams->viewangles);
+	V_Q1DropPunchAngle(pparams->frametime, (float*)&ev_punchangle);
+}
+
+/*
+===========================
+V_Q1DropPunchAngle
+
+Choppier DropPunchAngle..
+I know you can make punchangles
+choppier by editing the delta.lst
+entry for punchangles,
+but I don't want to mess up
+other punch effects, so I'll
+create a custom drop function
+specfically catered towards
+Quake1 styled bobbing.
+===========================
+*/
+
+void V_Q1DropPunchAngle(float frametime, float* ev_punchangle)
+{
+	static float	nxth = 0.0f;
+	static float	len;
+	static double	time;
+
+	time += frametime;
+
+	len = VectorNormalize(ev_punchangle);
+	if (nxth < time || time - nxth >= 0.0f)
+	{
+		len -= (10.0 * (1.0f/10.0f));
+		nxth = time + (1.0f / 10.0f);
+	}
+	len = max(len, 0.0);
+	VectorScale(ev_punchangle, len, ev_punchangle);
+}
+
+/*
+===============
+V_CalcDamageKick
+Stolen from Quake's sauce code!!
+===============
+*/
+
+void V_CalcDamageKick(vec3_t from, int count, float time)
+{
+	cl_entity_t* ent = gEngfuncs.GetLocalPlayer();
+	vec3_t	forward, right, up;
+	float	side;
+
+	VectorSubtract(from, ent->origin, from);
+	VectorNormalize(from);
+
+	AngleVectors(ent->angles, forward, right, up);
+
+	side = DotProduct(from, right);
+	v_dmg_roll = count * side * 0.3f;
+
+	side = DotProduct(from, forward);
+	v_dmg_pitch = count * side * 0.3f;
+
+	v_dmg_time = time + DAMAGE_TIME;
+}
+
+/*
 ===============
 V_CalcRoll
 Used by view and sv_user
 ===============
 */
+
 float V_CalcRoll (vec3_t angles, vec3_t velocity, float rollangle, float rollspeed )
 {
     float   sign;
@@ -826,6 +948,60 @@ float V_CalcRoll (vec3_t angles, vec3_t velocity, float rollangle, float rollspe
 		side = value;
 	}
 	return side * sign;
+}
+
+/*
+===============
+V_CalcBob
+Quakeworld bob code, this fixes 
+jitters in the mutliplayer since 
+the clock (pparams->time) isn't 
+quite linear
+===============
+*/
+
+float V_CalcBob(struct ref_params_s* pparams)
+{
+	static	double	bobtime;
+	static float	bob;
+	float	cycle;
+	static float	lasttime;
+	vec3_t	vel;
+
+
+	if (pparams->onground == -1 ||
+		pparams->time == lasttime)
+	{
+		// just use old value
+		return bob;
+	}
+
+	lasttime = pparams->time;
+
+	bobtime += pparams->frametime;
+	cycle = bobtime - (int)(bobtime / cl_bobcycle->value) * cl_bobcycle->value;
+	cycle /= cl_bobcycle->value;
+
+	if (cycle < cl_bobup->value)
+	{
+		cycle = M_PI * cycle / cl_bobup->value;
+	}
+	else
+	{
+		cycle = M_PI + M_PI * (cycle - cl_bobup->value) / (1.0 - cl_bobup->value);
+	}
+
+	// bob is proportional to simulated velocity in the xy plane
+	// (don't count Z, or jumping messes it up)
+	VectorCopy(pparams->simvel, vel);
+	vel[2] = 0;
+
+	bob = sqrt(vel[0] * vel[0] + vel[1] * vel[1]) * cl_bob->value;
+	bob = bob * 0.3 + bob * 0.7 * sin(cycle);
+	bob = min(bob, 4);
+	bob = max(bob, -7);
+	return bob;
+
 }
 
 typedef struct pitchdrift_s
@@ -982,16 +1158,16 @@ Roll is induced by movement and damage
 */
 void V_CalcViewRoll ( struct ref_params_s *pparams )
 {
-	//float		side;
+	float		side;
 	cl_entity_t *viewentity;
 	
 	viewentity = gEngfuncs.GetEntityByIndex( pparams->viewentity );
 	if ( !viewentity )
 		return;
 
-	//side = V_CalcRoll ( viewentity->angles, pparams->simvel, pparams->movevars->rollangle, pparams->movevars->rollspeed );
+	side = V_CalcRoll ( viewentity->angles, pparams->simvel, cl_rollangle->value, cl_rollspeed->value );
 
-	//pparams->viewangles[ROLL] += side;
+	pparams->viewangles[ROLL] += side;
 
 	if ( pparams->health <= 0 && ( pparams->viewheight[2] != 0 ) )
 	{
@@ -1178,7 +1354,7 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	pparams->vieworg[2] += waterOffset + view_ofs;
 	
-	V_CalcViewRoll ( pparams );
+	//V_CalcViewRoll ( pparams );
 	
 	V_AddIdle ( pparams );
 
@@ -1231,38 +1407,24 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 // Q2/Q3 View-bob and Gun-bob start.
 
-	// calc values. moved for cleanliness
-	if (cl_bob_style->value == 0)
-		V_Q2_CalcBobValues(pparams);
-	else if (cl_bob_style->value == 1)
-		V_Q3_CalcBobValues(pparams);
-	else
-		V_DoomCalcBob(pparams);
-
-
-// Q2/Q3 View-bob and Gun-bob end.
-
-	// Add in the punchangle, if any
-#if 0
-	for (i = 0; i < 3; i++)
+	switch ((int)cl_bob_style->value)
 	{
-		lerpPunch[i] = Interpolate(lerpPunch[i], pparams->punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
-		ev_lerpPunch[i] = Interpolate(ev_lerpPunch[i], ev_punchangle[i], min(pparams->frametime, 1 / 72.0f) * 10.0f);
+	case 0:
+	case 1:
+		V_Q1_CalcNormalRefdef(pparams);
+		break;
+	case 2:
+		V_Q2_CalcNormalRefdef(pparams);
+		break;
+	case 3:
+		V_Q3_CalcNormalRefdef(pparams);
+		break;
+	case 4:
+		V_DoomCalcBob(pparams);
+		break;
 	}
 
-	VectorAdd(pparams->viewangles, lerpPunch, pparams->viewangles);
-
-	// Include client side punch, too
-	VectorAdd(pparams->viewangles, ev_lerpPunch, pparams->viewangles);
-
-	V_DropPunchAngle(pparams->frametime, (float*)&ev_punchangle);
-
-#endif
-
-	// Include client side punch, too
-	VectorAdd(pparams->viewangles, ev_punchangle, pparams->viewangles);
-
-	V_DropPunchAngle(pparams->frametime, (float*)&ev_punchangle);
+// Q2/Q3 View-bob and Gun-bob end.
 
 	// smooth out stair step ups
 #if 1
@@ -2170,7 +2332,71 @@ void V_CalcSpectatorRefdef ( struct ref_params_s * pparams )
 
 }
 
+/*
+===============
+R_SetVrect
+===============
+*/
 
+void R_SetVrect(struct ref_params_s* pparams, int* pvrectin, int* pvrect, int lineadj)
+{
+	int		h;
+	float	size;
+	qboolean full = false;
+
+	if (scr_viewsize->value >= 100.0) {
+		size = 100.0;
+		full = true;
+	}
+	else
+		size = scr_viewsize->value;
+
+	if (pparams->intermission)
+	{
+		full = true;
+		size = 100.0;
+		lineadj = 0;
+	}
+	size /= 100.0;
+
+	if (full)
+		h = pvrectin[3];
+	else
+		h = pvrectin[3] - lineadj;
+
+	if (full)
+		pvrect[2] = pvrectin[2];
+	else
+		pvrect[2] = pvrectin[2] * size;
+	if (pvrect[2] < 96)
+	{
+		size = 96.0 / pvrectin[2];
+		pvrect[2] = 96;	// min for icons
+	}
+	pvrect[2] &= ~7;
+	pvrect[3] = pvrectin[3] * size;
+	if (!full) {
+		if (pvrect[3] > pvrectin[3] - lineadj)
+			pvrect[3] = pvrectin[3] - lineadj;
+	}
+	else
+		if (pvrect[3] > pvrectin[3])
+			pvrect[3] = pvrectin[3];
+
+	pvrect[3] &= ~1;
+
+	pvrect[0] = (pvrectin[2] - pvrect[2]) / 2;
+	if (full)
+		pvrect[1] = 0;
+	else
+		pvrect[1] = (h - pvrect[3]) / 2;
+}
+
+/*
+===============
+V_CalcRefdef
+===============
+*/
 
 void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 {
@@ -2188,24 +2414,96 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 		V_CalcNormalRefdef ( pparams );
 	}
 
+	if (IEngineStudio.IsHardware())
+		SCR_CalcRefdef(pparams);
+}
+
 /*
-// Example of how to overlay the whole screen with red at 50 % alpha
-#define SF_TEST
-#if defined SF_TEST
-	{
-		screenfade_t sf;
-		gEngfuncs.pfnGetScreenFade( &sf );
+=================
+SCR_CalcRefdef
 
-		sf.fader = 255;
-		sf.fadeg = 0;
-		sf.fadeb = 0;
-		sf.fadealpha = 128;
-		sf.fadeFlags = FFADE_STAYOUT | FFADE_OUT;
-
-		gEngfuncs.pfnSetScreenFade( &sf );
-	}
-#endif
+Must be called whenever vid changes
+Internal use only
+=================
 */
+
+void SCR_CalcRefdef(struct ref_params_s* pparams)
+{
+	int view[4];
+
+	SCREENINFO vid;
+	vid.iSize = sizeof(vid);
+	GetScreenInfo(&vid);
+	float		size = scr_viewsize->value;
+
+	//========================================
+
+	// bound viewsize
+	if (scr_viewsize->value < 30)
+		gEngfuncs.Cvar_SetValue("scr_viewsize", 30);
+	if (scr_viewsize->value > 120)
+		gEngfuncs.Cvar_SetValue("scr_viewsize", 120);
+
+	if (size >= 120)
+		sb_lines = 0;           // no status bar at all
+	else if (size >= 110)
+		sb_lines = 24;          // no inventory
+	else
+		sb_lines = 24 + 16 + 8;
+
+	// these calculations mirror those in R_Init() for r_refdef, but take no
+	// account of water warping
+	view[0] = 0;
+	view[1] = 0;
+	view[2] = vid.iWidth;
+	view[3] = vid.iHeight;
+
+	R_SetVrect(pparams, (int*)&view, (int*)&pparams->viewport, sb_lines);
+
+	// guard against going from one mode to another that's less than half the
+	// vertical resolution
+	//if (scr_con_current > vid.height)
+	//	scr_con_current = vid.height;
+}
+
+/*
+=================
+SCR_SizeUp_f
+
+Keybinding command
+=================
+*/
+void SCR_SizeUp_f(void)
+{
+	if (!IEngineStudio.IsHardware())
+	{
+		// Use regular view-size CMD in SW Mode (serecky 10.12.25)
+		gEngfuncs.pfnClientCmd("sizeup");
+		return;
+	}
+
+	gEngfuncs.Cvar_SetValue("scr_viewsize", scr_viewsize->value + 10);
+	gEngfuncs.pfnConsolePrint(UTIL_VarArgs("%.2f\n", scr_viewsize->value));
+}
+
+/*
+=================
+SCR_SizeDown_f
+
+Keybinding command
+=================
+*/
+void SCR_SizeDown_f(void)
+{
+	if (!IEngineStudio.IsHardware())
+	{
+		// Use regular view-size CMD in SW Mode (serecky 10.12.25)
+		gEngfuncs.pfnClientCmd("sizedown");
+		return;
+	}
+
+	gEngfuncs.Cvar_SetValue("scr_viewsize", scr_viewsize->value - 10);
+	gEngfuncs.pfnConsolePrint(UTIL_VarArgs("%.2f\n", scr_viewsize->value));
 }
 
 /*
@@ -2269,6 +2567,8 @@ V_Init
 void V_Init (void)
 {
 	gEngfuncs.pfnAddCommand ("centerview", V_StartPitchDrift );
+	gEngfuncs.pfnAddCommand ("scr_sizeup", SCR_SizeUp_f );
+	gEngfuncs.pfnAddCommand ("scr_sizedown", SCR_SizeDown_f );
 
 	scr_ofsx			= gEngfuncs.pfnRegisterVariable( "scr_ofsx","0", 0 );
 	scr_ofsy			= gEngfuncs.pfnRegisterVariable( "scr_ofsy","0", 0 );
@@ -2287,6 +2587,15 @@ void V_Init (void)
 	cl_bob_pitch		= gEngfuncs.pfnRegisterVariable( "cl_bob_pitch", "0.002", 0 );
 	cl_bob_roll			= gEngfuncs.pfnRegisterVariable( "cl_bob_roll", "0.002", 0 );
 	cl_bob_style		= gEngfuncs.pfnRegisterVariable( "cl_bob_style", "0", FCVAR_ARCHIVE);
+
+	cl_bobcycle			= gEngfuncs.pfnRegisterVariable( "cl_bobcycle","0.6", 0 );// best default for my experimental gun wag (sjb)
+	cl_bob				= gEngfuncs.pfnRegisterVariable( "cl_bob","0.02", 0 );// best default for my experimental gun wag (sjb)
+	cl_bobup			= gEngfuncs.pfnRegisterVariable( "cl_bobup","0.5", 0 );
+	cl_rollspeed		= gEngfuncs.pfnRegisterVariable( "cl_rollspeed", "200", 0);
+	cl_rollangle		= gEngfuncs.pfnRegisterVariable( "cl_rollangle", "2.0", 0);
+
+	scr_viewsize		= gEngfuncs.pfnRegisterVariable( "scr_viewsize", "120", FCVAR_ARCHIVE); 
+	// just override the friggin viewsize in hw mode
 
 	cl_waterdist		= gEngfuncs.pfnRegisterVariable( "cl_waterdist","4", 0 );
 	cl_chasedist		= gEngfuncs.pfnRegisterVariable( "cl_chasedist","112", 0 );

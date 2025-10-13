@@ -40,6 +40,8 @@
 #include	"weapons.h"
 #include	"decals.h"
 
+#if 0
+
 #define		SF_LOCKED 1 // Car's locked!
 
 /*
@@ -730,3 +732,5 @@ void CDriveableCar::Car_Use(CBaseEntity* pActivator, CBaseEntity* pCaller, USE_T
 	}
 
 }
+
+#endif
